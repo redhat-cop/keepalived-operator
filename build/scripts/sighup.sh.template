@@ -1,0 +1,1 @@
+bash -c 'if [ {{ .Event }} == "write" ]; then kill -SIGHUP $(cat $pid); echo "sent kill signal SIGHUP to $(cat $pid) with outcome $?"; fi'    

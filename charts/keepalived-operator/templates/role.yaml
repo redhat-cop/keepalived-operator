@@ -1,0 +1,86 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: keepalived-operator
+  namespace: {{ .Release.Namespace }}  
+rules:
+# leader election   
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - pods
+  verbs:
+  - "*"  
+#Metrics  
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - services/finalizers
+  verbs:
+  - "*"
+#Metrics  
+- apiGroups:
+  - "apps"
+  resources:
+  - replicasets
+  - deployments
+  verbs: 
+  - "get"
+  - "list"
+# Metrics  
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - "get"
+  - "create"
+# Metrics  
+- apiGroups:
+  - apps
+  resources:
+  - deployments/finalizers
+  resourceNames:
+  - keepalived-operator
+  verbs:
+  - "update"
+# operator busienss logic  
+- apiGroups:
+  - redhatcop.redhat.io
+  resources:
+  - 'mustgathers'
+  - mustgathers/finalizers
+  - mustgathers/status
+  verbs:
+  - '*'
+- apiGroups:
+    - "batch"
+  resources:
+    - jobs
+  verbs:
+    - "*"
+- apiGroups:
+    - ""
+  resources:
+    - events
+  verbs:
+    - "*"
+- apiGroups:
+    - ""
+  resources:
+    - secrets
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+  - "config.openshift.io"
+  resources:
+  - proxies
+  verbs:
+  - get
+  - list
+  resourceNames:
+  - cluster  

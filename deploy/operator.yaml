@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keepalived-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: keepalived-operator
+  template:
+    metadata:
+      labels:
+        name: keepalived-operator
+    spec:
+      serviceAccountName: keepalived-operator
+      containers:
+        - name: keepalived-operator
+          # Replace this with the built image name
+          image: REPLACE_IMAGE
+          command:
+          - keepalived-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "keepalived-operator"

@@ -1,0 +1,100 @@
+# expected merge structure
+# .KeepAlivedGroup
+# .Services
+- apiVersion: apps/v1
+  kind: DaemonSet
+  metadata:
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+  spec:
+    selector:
+      matchLabels:
+        keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    template:
+      metadata:
+        labels:
+          keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+      spec:
+        nodeSelector:
+        {{ range $index, $element := .KeepalivedGroup.Spec.NodeSelector }}  
+          {{ $index }}: {{ $element }}
+        {{ end }}  
+        hostNetwork: true
+        automountServiceAccountToken: false
+        enableServiceLinks: false
+        shareProcessNamespace: true
+        containers:
+        - name: keepalived
+          image: "registry.redhat.io/openshift4/ose-keepalived-ipfailover"
+          command:
+          - /usr/sbin/keepalived
+          - -l
+          - -D
+          - -n
+          args:
+          - -f
+          - /etc/keepalived.d/keepalived.conf
+          - -p
+          - /etc/keepalived.pid/keepalived.pid
+          volumeMounts:
+          - mountPath: /lib/modules
+            name: lib-modules
+            readOnly: true
+          - mountPath: /etc/keepalived.d
+            name: config
+            readOnly: true
+          - mountPath: /etc/keepalived.pid
+            name: pid                   
+          securityContext:
+            privileged: true
+          - name: config-reloader
+            image: {{ .Misc.image }}
+            command:
+            - bash
+            - -c
+            - /scripts/notify.sh
+            env:
+            - name: pid
+              value: /etc/keepalived.pid/keepalived.pid
+            - name: file
+              value: /etc/keepalived.d/keepalived.conf
+            volumeMounts:
+            - mountPath: /etc/keepalived.d
+              name: config
+              readOnly: true
+            - mountPath: /etc/keepalived.pid
+              name: pid                                           
+        volumes:
+        - hostPath:
+            path: /lib/modules
+          name: lib-modules
+        - name: config
+          configMap:
+            name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+        - name: pid
+            emptyDir: {}                      
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+  data: 
+    keepalived.conf: |
+      global_defs {
+          router_id {{ .KeepalivedGroup.ObjectMeta.Name }}
+      }
+  {{ $root:=. }}    
+  {{ range .Services }}
+      {{ $namespacedName:=printf "%s/%s" .ObjectMeta.Namespace .ObjectMeta.Name }}
+      vrrp_instance {{ $namespacedName }} {
+          interface {{ $root.KeepalivedGroup.Spec.Interface }}
+          
+          virtual_router_id {{ index $root.KeepalivedGroup.Status.RouterIDs $namespacedName }}  
+          
+          virtual_ipaddress {
+            {{ range .Status.LoadBalancer.Ingress }}
+            {{ .IP }}
+            {{ end }}
+          }
+      }
+  {{ end }}             

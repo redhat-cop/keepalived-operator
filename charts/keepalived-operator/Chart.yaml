@@ -1,0 +1,11 @@
+apiVersion: v1
+name: keepalived-operator
+version: 1.2.3
+appVersion: 1.2.3
+description: Helm chart that deploys keepalived-operator
+keywords:
+  - certificates
+  - operator
+sources:
+  - https://github.com/redhat-cop/keepalived-operator
+engine: gotpl
