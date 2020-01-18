@@ -44,26 +44,53 @@
             name: config
             readOnly: true
           - mountPath: /etc/keepalived.pid
-            name: pid                   
+            name: pid
+          - mountPath: /tmp
+            name: stats                               
           securityContext:
             privileged: true
-          - name: config-reloader
-            image: {{ .Misc.image }}
-            command:
-            - bash
-            - -c
-            - /scripts/notify.sh
-            env:
-            - name: pid
-              value: /etc/keepalived.pid/keepalived.pid
-            - name: file
-              value: /etc/keepalived.d/keepalived.conf
-            volumeMounts:
-            - mountPath: /etc/keepalived.d
-              name: config
-              readOnly: true
-            - mountPath: /etc/keepalived.pid
-              name: pid                                           
+        - name: config-reloader
+          image: {{ .Misc.image }}
+          imagePullPolicy: Always
+          command:
+          - bash
+          - -c
+          - /usr/local/bin/notify.sh
+          env:
+          - name: pid
+            value: /etc/keepalived.pid/keepalived.pid
+          - name: file
+            value: /etc/keepalived.d/keepalived.conf
+          - name: template
+            value: /templates/sighup.sh.template
+          - name: verb
+            value: rename   
+          volumeMounts:
+          - mountPath: /etc/keepalived.d
+            name: config
+            readOnly: true
+          - mountPath: /etc/keepalived.pid
+            name: pid
+          securityContext:
+            runAsUser: 0  
+        - name: prometheus-exporter
+          image: {{ .Misc.image }}
+          imagePullPolicy: Always
+          command:
+          - /usr/local/bin/keepalived_exporter
+          args:
+          - '-web.listen-address'
+          - ':9650'
+          - '-web.telemetry-path'
+          - '/metrics'
+          securityContext:
+            privileged: true
+          volumeMounts:
+          - mountPath: /lib/modules
+            name: lib-modules
+            readOnly: true
+          - mountPath: /tmp
+            name: stats                                                                                             
         volumes:
         - hostPath:
             path: /lib/modules
@@ -72,7 +99,9 @@
           configMap:
             name: {{ .KeepalivedGroup.ObjectMeta.Name }}
         - name: pid
-            emptyDir: {}                      
+          emptyDir: {}
+        - name: stats
+          emptyDir: {}                                
 - apiVersion: v1
   kind: ConfigMap
   metadata:

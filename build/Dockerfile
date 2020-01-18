@@ -7,7 +7,7 @@ ENV OPERATOR=/usr/local/bin/keepalived-operator \
 # install operator binary
 COPY build/_output/bin/keepalived-operator ${OPERATOR}
 COPY build/_output/bin/notify /usr/local/bin
-COPY build/scripts /scripts
+COPY build/_output/bin/keepalived_exporter /usr/local/bin
 COPY build/templates /templates
 
 COPY build/bin /usr/local/bin

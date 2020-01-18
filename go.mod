@@ -3,13 +3,21 @@ module github.com/redhat-cop/keepalived-operator
 go 1.13
 
 require (
+	github.com/docker/libnetwork v0.8.0-dev.2.0.20191022201816-571783238bee // indirect
+	github.com/gen2brain/keepalived_exporter v0.0.0-20191001014942-a8b3e1304623 // indirect
 	github.com/go-openapi/spec v0.19.4
+	github.com/hkwi/nlgo v0.0.0-20190926025335-08733afbfe04 // indirect
 	github.com/operator-framework/operator-sdk v0.14.0
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/prometheus/client_golang v1.3.0 // indirect
+	github.com/prometheus/common v0.8.0 // indirect
 	github.com/redhat-cop/operator-utils v0.1.1
 	github.com/rjeczalik/cmd v0.0.0-20190310140815-f9478ce0b0c6 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/scylladb/go-set v1.0.2
+	github.com/shirou/gopsutil v2.19.12+incompatible // indirect
 	github.com/spf13/pflag v1.0.5
+	github.com/vishvananda/netlink v1.1.0 // indirect
 	golang.org/x/sys v0.0.0-20200117145432-59e60aa80a0c // indirect
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.17.0

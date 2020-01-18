@@ -25,10 +25,9 @@ Using the [operator-sdk](https://github.com/operator-framework/operator-sdk), ru
 oc apply -f deploy/crds/redhatcop.redhat.io_keepalivedgroups_crd.yaml
 export REPOSITORY=quay.io/<your_repo>/keepalived-operator
 docker login $REPOSITORY
-make docker-push-latest
+make manager docker-build docker-push-latest
 export KEEPALIVED_OPERATOR_IMAGE_NAME=${REPOSITORY}:latest
 export KEEPALIVEDGROUP_TEMPLATE_FILE_NAME=./build/templates/keepalived-template.yaml
-oc patch network cluster -p "$(cat ./test/externalIP-patch.yaml | yq -j .)" --type=merge
 OPERATOR_NAME='keepalived-operator' operator-sdk --verbose up local --namespace ""
 ```
 
