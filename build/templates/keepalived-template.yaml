@@ -107,6 +107,8 @@
   metadata:
     name: {{ .KeepalivedGroup.ObjectMeta.Name }}
     namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+    labels:
+      keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}    
   data: 
     keepalived.conf: |
       global_defs {
@@ -136,4 +138,16 @@
           {{ $key }} {{ $value }}
           {{ end }}
       }
-  {{ end }}             
+  {{ end }}
+- apiVersion: monitoring.coreos.com/v1
+  kind: PodMonitor
+  metadata:
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    labels:
+      keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+  spec:
+    selector:
+      matchLabels:
+        keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    podMetricsEndpoints:
+    - port: metrics       
