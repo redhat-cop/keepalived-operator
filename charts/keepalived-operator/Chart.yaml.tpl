@@ -4,9 +4,8 @@ version: ${version}
 appVersion: ${version}
 description: Helm chart that deploys keepalived-operator
 keywords:
-  - resource-enforcing
-  - patches-enforcing
-  - operator
+  - VIP
+  - load balancer
 sources:
   - https://github.com/redhat-cop/keepalived-operator
 engine: gotpl

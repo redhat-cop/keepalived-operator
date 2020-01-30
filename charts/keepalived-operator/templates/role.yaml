@@ -1,8 +1,62 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: keepalived-operator
+rules:
+  - apiGroups:
+    - redhatcop.redhat.io
+    resources:
+    - keepalivedgroups
+    - keepalivedgroups/finalizers
+    - keepalivedgroups/status
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch    
+  - apiGroups:
+    - ""
+    resources:
+    - services
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - "apps"
+    resources:
+    - daemonsets
+    - daemonsets/finalizers    
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch   
+---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: keepalived-operator
-  namespace: {{ .Release.Namespace }}  
+  namespace: {{ .Release.Namespace }}
 rules:
 # leader election   
 - apiGroups:
@@ -46,41 +100,4 @@ rules:
   - keepalived-operator
   verbs:
   - "update"
-# operator busienss logic  
-- apiGroups:
-  - redhatcop.redhat.io
-  resources:
-  - 'mustgathers'
-  - mustgathers/finalizers
-  - mustgathers/status
-  verbs:
-  - '*'
-- apiGroups:
-    - "batch"
-  resources:
-    - jobs
-  verbs:
-    - "*"
-- apiGroups:
-    - ""
-  resources:
-    - events
-  verbs:
-    - "*"
-- apiGroups:
-    - ""
-  resources:
-    - secrets
-  verbs:
-    - get
-    - list
-    - watch
-- apiGroups:
-  - "config.openshift.io"
-  resources:
-  - proxies
-  verbs:
-  - get
-  - list
-  resourceNames:
-  - cluster  
+  

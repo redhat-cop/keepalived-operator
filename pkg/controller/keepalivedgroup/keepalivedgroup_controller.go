@@ -32,7 +32,7 @@ import (
 const controllerName = "keepalived-controller"
 const templateFileNameEnv = "KEEPALIVEDGROUP_TEMPLATE_FILE_NAME"
 const imageNameEnv = "KEEPALIVED_OPERATOR_IMAGE_NAME"
-const keepalivedGroupAnnotation = "cert-utils-operator.redhat-cop.io/KeepalivedGroup"
+const keepalivedGroupAnnotation = "keepalived-operator.redhat-cop.io/keepalivedgroup"
 
 var log = logf.Log.WithName(controllerName)
 var keepalivedTemplate *template.Template
@@ -87,7 +87,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			if !ok {
 				return false
 			}
-			if _, ok := service.GetAnnotations()[keepalivedGroupAnnotation]; ok && service.Spec.Type == corev1.ServiceTypeLoadBalancer {
+			if _, ok := service.GetAnnotations()[keepalivedGroupAnnotation]; ok && (service.Spec.Type == corev1.ServiceTypeLoadBalancer || len(service.Spec.ExternalIPs) > 0) {
 				return true
 			}
 			return false
@@ -97,7 +97,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			if !ok {
 				return false
 			}
-			if _, ok := service.GetAnnotations()[keepalivedGroupAnnotation]; ok && service.Spec.Type == corev1.ServiceTypeLoadBalancer {
+			if _, ok := service.GetAnnotations()[keepalivedGroupAnnotation]; ok && (service.Spec.Type == corev1.ServiceTypeLoadBalancer || len(service.Spec.ExternalIPs) > 0) {
 				return true
 			}
 			return false
@@ -107,7 +107,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			if !ok {
 				return false
 			}
-			if _, ok := service.GetAnnotations()[keepalivedGroupAnnotation]; ok && service.Spec.Type == corev1.ServiceTypeLoadBalancer {
+			if _, ok := service.GetAnnotations()[keepalivedGroupAnnotation]; ok && (service.Spec.Type == corev1.ServiceTypeLoadBalancer || len(service.Spec.ExternalIPs) > 0) {
 				return true
 			}
 			return false
@@ -291,7 +291,7 @@ func (r *ReconcileKeepalivedGroup) getReferencingServices(instance *redhatcopv1a
 	result := []corev1.Service{}
 	for _, service := range serviceList.Items {
 		value, ok := service.GetAnnotations()[keepalivedGroupAnnotation]
-		if ok && service.Spec.Type == corev1.ServiceTypeLoadBalancer {
+		if ok && (service.Spec.Type == corev1.ServiceTypeLoadBalancer || len(service.Spec.ExternalIPs) > 0) {
 			namespacedName, err := getNamespacedName(value)
 			if err != nil {
 				log.Error(err, "unable to create namespaced name from ", "service", getNamespaceNameKey(&service), "annotation", keepalivedGroupAnnotation, "value", value)

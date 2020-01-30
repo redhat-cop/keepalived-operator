@@ -60,11 +60,7 @@
           - name: pid
             value: /etc/keepalived.pid/keepalived.pid
           - name: file
-            value: /etc/keepalived.d/keepalived.conf
-          - name: template
-            value: /templates/sighup.sh.template
-          - name: verb
-            value: rename   
+            value: /etc/keepalived.d/keepalived.conf   
           volumeMounts:
           - mountPath: /etc/keepalived.d
             name: config
@@ -85,6 +81,10 @@
           - '/metrics'
           securityContext:
             privileged: true
+          ports:
+          - name: metrics
+            containerPort: 9650
+            protocol: TCP  
           volumeMounts:
           - mountPath: /lib/modules
             name: lib-modules
@@ -123,6 +123,9 @@
           virtual_ipaddress {
             {{ range .Status.LoadBalancer.Ingress }}
             {{ .IP }}
+            {{ end }}
+            {{ range .Spec.ExternalIPs }}
+            {{ . }}
             {{ end }}
           }
       }

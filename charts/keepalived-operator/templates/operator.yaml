@@ -23,12 +23,16 @@ spec:
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: ""
             - name: POD_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: KEEPALIVED_OPERATOR_IMAGE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.containers[0].image
+            - name: KEEPALIVEDGROUP_TEMPLATE_FILE_NAME
+              value: /templates/keepalived-template.yaml                      
             - name: OPERATOR_NAME
-              value: "keepalived-operator"          
+              value: "keepalived-operator"        
