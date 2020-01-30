@@ -66,9 +66,9 @@ oc patch network cluster -p "$(envsubst < ./network-patch.yaml | yq -j .)" --typ
 
 ## Verbatim Configurations
 
-Keepalived has dozens of [configurations](https://www.keepalived.org/manpage.html). At the early stage of this project it's difficult to tell which one should me modeled in the API. Yet, users of this project may still need to use them. To account for that there is a way to pass verbatim options both at the keepalived group level (which maps to the keepalived config `global_defs` section) and at the service level (which maps to the keepalived config `vrrp_instance` section).
+Keepalived has dozens of [configurations](https://www.keepalived.org/manpage.html). At the early stage of this project it's difficult to tell which one should me modeled in the API. Yet users of this project may still need to ue them. To account for that there is a way to pass verbatim options both at the keepalived group level (which maps to the keepalived config `global_defs` section) and the service level (which maps to the keepalived config `vrrp_instance` section).
 
-KeepalivedGroup-level verbatim configurations can be passed as in the following example:
+KeepalivedGroup level verbatim configurations can be passed as in the following example:
 
 ```yaml
 apiVersion: redhatcop.redhat.io/v1alpha1
@@ -100,7 +100,7 @@ kind: Service
 metadata:
   annotations:
     keepalived-operator.redhat-cop.io/keepalivedgroup: keepalived-operator/keepalivedgroup-router
-    keepalived-operator.redhat-cop.io/verbatimconfig: '{ "track_src_ip": "" }'
+    keepalived-operator.redhat-cop.io/verbatimconfig: '{ "quorum": "3" }'
 ```
 
 this will map to the following `vrrp_instance` section
@@ -112,7 +112,7 @@ this will map to the following `vrrp_instance` section
         virtual_ipaddress {
           192.168.131.129
         }
-        track_src_ip
+        quorum 3
     }
 ```
 
