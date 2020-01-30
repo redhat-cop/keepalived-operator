@@ -34,6 +34,7 @@ spec:
 This KeepalivedGroup will be deployed on all the nodes with role `loadbalancer`. One must also specify the network device on which the VIPs will be exposed, it is assumed that all the nodes have the same network device configuration.
 
 Services must be annotated to opt-in to being observed by the keepalived operator and to specify which KeepalivedGroup they refer to. The annotation looks like this:
+
 `keepalived-operator.redhat-cop.io/keepalivedgroup: <keepalivedgroup namespace>/<keepalivedgroup-name>`
 
 ## Requirements
@@ -100,7 +101,7 @@ kind: Service
 metadata:
   annotations:
     keepalived-operator.redhat-cop.io/keepalivedgroup: keepalived-operator/keepalivedgroup-router
-    keepalived-operator.redhat-cop.io/verbatimconfig: '{ "quorum": "3" }'
+    keepalived-operator.redhat-cop.io/verbatimconfig: '{ "track_src_ip": "" }'
 ```
 
 this will map to the following `vrrp_instance` section
@@ -112,7 +113,7 @@ this will map to the following `vrrp_instance` section
         virtual_ipaddress {
           192.168.131.129
         }
-        quorum 3
+        track_src_ip
     }
 ```
 
