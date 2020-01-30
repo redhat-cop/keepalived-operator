@@ -2,6 +2,7 @@ package keepalivedgroup
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"os"
@@ -33,6 +34,7 @@ const controllerName = "keepalived-controller"
 const templateFileNameEnv = "KEEPALIVEDGROUP_TEMPLATE_FILE_NAME"
 const imageNameEnv = "KEEPALIVED_OPERATOR_IMAGE_NAME"
 const keepalivedGroupAnnotation = "keepalived-operator.redhat-cop.io/keepalivedgroup"
+const keepalivedGroupVerbatimConfigAnnotation = "keepalived-operator.redhat-cop.io/verbatimconfig"
 
 var log = logf.Log.WithName(controllerName)
 var keepalivedTemplate *template.Template
@@ -315,9 +317,22 @@ func initializeTemplate() (*template.Template, error) {
 		log.Error(err, "Error reading job template file", "filename", templateFileName)
 		return &template.Template{}, err
 	}
-	jobTemplate, err := template.New("KeepalivedGroup").Parse(string(text))
+	jobTemplate, err := template.New("KeepalivedGroup").Funcs(template.FuncMap{
+		"parseJson": func(jsonstr string) map[string]string {
+			if jsonstr == "" {
+				return map[string]string{}
+			}
+			var m map[string]string
+			err := json.Unmarshal([]byte(jsonstr), m)
+			if err != nil {
+				log.Error(err, "unable to unmarshal json ", "string", jsonstr)
+				return map[string]string{}
+			}
+			return m
+		},
+	}).Parse(string(text))
 	if err != nil {
-		log.Error(err, "Error parsing template", "template", text)
+		log.Error(err, "Error parsing template", "template", string(text))
 		return &template.Template{}, err
 	}
 	return jobTemplate, err

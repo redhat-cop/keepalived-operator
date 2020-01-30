@@ -20,6 +20,9 @@ type KeepalivedGroupSpec struct {
 
 	// +kubebuilder:validation:Required
 	Interface string `json:"interface"`
+
+	// +kubebuilder:validation:Optional
+	VerbatimConfig map[string]string `json:"verbatimConfig,omitempty"`
 }
 
 // KeepalivedGroupStatus defines the observed state of KeepalivedGroup

@@ -60,6 +60,58 @@ export AUTOASSIGNED_CIDR="192.168.131.192/26"
 oc patch network cluster -p "$(envsubst < ./network-patch.yaml | yq -j .)" --type=merge
 ```
 
+## Verbatim Configurations
+
+Keepalived has dozens of [configurations](https://www.keepalived.org/manpage.html). At the early stage of this project it's difficult to tell which one should me modeled in the API. Yet users of this project may still need to ue them. To account for that there is a way to pass verbatim options both at the keepalived group level (which maps to the keepalived config `global_defs` section) and the service level (which maps to the keepalived config `vrrp_instance` section).
+
+KeepalivedGroup level verbatim configurations can be passed as in the following example:
+
+```yaml
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: KeepalivedGroup
+metadata:
+  name: keepalivedgroup-router
+spec:
+  interface: ens3
+  nodeSelector:
+    node-role.kubernetes.io/loadbalancer: ""
+  verbatimConfig:  
+    vrrp_iptables: my-keepalived
+```
+
+this will map to the following `global_defs`:
+
+```
+    global_defs {
+        router_id keepalivedgroup-router
+        vrrp_iptables my-keepalived
+    }
+```
+
+Service level verbatim configurations can be passed as in the following example:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    keepalived-operator.redhat-cop.io/keepalivedgroup: keepalived-operator/keepalivedgroup-router
+    keepalived-operator.redhat-cop.io/verbatimconfig: '{ "quorum": "3" }'
+```
+
+this will map to the following `vrrp_instance` section
+
+```
+    vrrp_instance openshift-ingress/router-default {
+        interface ens3
+        virtual_router_id 1  
+        virtual_ipaddress {
+          192.168.131.129
+        }
+        quorum 3
+    }
+```
+
 ## Metrics collection
 
 Each keepalived pod expose a [Prometheus](link) metrics port at `9650`. When a keepalived group is created a [`PodMonitor`](link) rule to collect those metrics. It is up to you to make sure your Prometheus instance watches for those `PodMonitor` rules.
