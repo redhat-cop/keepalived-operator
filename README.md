@@ -1,8 +1,8 @@
 # Keepalived operator
 
-The objective of the keeplived operator provides is to allow for a way to create self-hosted load balancers in an automated way. From a user experience point of view the behavior is the same as of when creating [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)  services with a cloud provider able to manage them.
+The objective of the keepalived operator provides is to allow for a way to create self-hosted load balancers in an automated way. From a user experience point of view the behavior is the same as of when creating [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)  services with a cloud provider able to manage them.
 
-The keepalived operator can be used in all environments that allows nodes to advertise additional IPs on their NICs (and at least for now, in networks that allow multicast), however it's mainly aimed at supporting LoadBalancer services and ExternalIPs on baremetal installations (or other installation environments where a cloud provider is not available).
+The keepalived operator can be used in all environments that allows nodes to advertise additional IPs on their NICs (and at least for now, in networks that allow multicast), however it's mainly aimed at supporting LoadBalancer services and ExternalIPs on bare metal installations (or other installation environments where a cloud provider is not available).
 
 One possible use of the keepalived operator is also to support [OpenShift Ingresses](https://docs.openshift.com/container-platform/4.3/networking/configuring-ingress-cluster-traffic/overview-traffic.html) in environments where an external load balancer cannot be provisioned.
 
@@ -34,7 +34,7 @@ spec:
 This KeepalivedGroup will be deployed on all the nodes with role `loadbalancer`. One must also specify the network device on which the VIPs will be exposed, it is assumed that all the nodes have the same network device configuration.
 
 Services must be annotated to opt-in to being observed by the keepalived operator and to specify which KeepalivedGroup they refer to. The annotation looks like this:
-`keepalived-operator.redhat-cop.io/keepalivedgroup: <keepalivedgreoup namespace>/<keepalivedgroup-name>`
+`keepalived-operator.redhat-cop.io/keepalivedgroup: <keepalivedgroup namespace>/<keepalivedgroup-name>`
 
 ## Requirements
 
@@ -66,9 +66,9 @@ oc patch network cluster -p "$(envsubst < ./network-patch.yaml | yq -j .)" --typ
 
 ## Verbatim Configurations
 
-Keepalived has dozens of [configurations](https://www.keepalived.org/manpage.html). At the early stage of this project it's difficult to tell which one should me modeled in the API. Yet users of this project may still need to ue them. To account for that there is a way to pass verbatim options both at the keepalived group level (which maps to the keepalived config `global_defs` section) and the service level (which maps to the keepalived config `vrrp_instance` section).
+Keepalived has dozens of [configurations](https://www.keepalived.org/manpage.html). At the early stage of this project it's difficult to tell which one should me modeled in the API. Yet, users of this project may still need to use them. To account for that there is a way to pass verbatim options both at the keepalived group level (which maps to the keepalived config `global_defs` section) and at the service level (which maps to the keepalived config `vrrp_instance` section).
 
-KeepalivedGroup level verbatim configurations can be passed as in the following example:
+KeepalivedGroup-level verbatim configurations can be passed as in the following example:
 
 ```yaml
 apiVersion: redhatcop.redhat.io/v1alpha1
@@ -92,7 +92,7 @@ this will map to the following `global_defs`:
     }
 ```
 
-Service level verbatim configurations can be passed as in the following example:
+Service-level verbatim configurations can be passed as in the following example:
 
 ```yaml
 apiVersion: v1
@@ -118,7 +118,15 @@ this will map to the following `vrrp_instance` section
 
 ## Metrics collection
 
-Each keepalived pod expose a [Prometheus](https://prometheus.io/) metrics port at `9650`. When a keepalived group is created a [`PodMonitor`](https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#podmonitor) rule to collect those metrics. It is up to you to make sure your Prometheus instance watches for those `PodMonitor` rules.
+Each keepalived pod exposes a [Prometheus](https://prometheus.io/) metrics port at `9650`. Metrics are collected with [keepalived_exporter](github.com/gen2brain/keepalived_exporter), the vailable metrics are described in the project documentation.
+
+When a keepalived group is created a [`PodMonitor`](https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#podmonitor) rule to collect those metrics. All PodMonitor resources created that way have the label: `metrics: keepalived`. It is up to you to make sure your Prometheus instance watches for those `PodMonitor` rules. Here is an example of a fragment of a `Prometheus` CR configured to collect the keepalived pod metrics:
+
+```yaml
+  podMonitorSelector:
+    matchLabels:
+      metrics: keepalived
+```
 
 ## Deploying the Operator
 
@@ -135,12 +143,12 @@ oc new-project keepalived-operator
 
 helm repo add keepalived-operator https://redhat-cop.github.io/keepalived-operator
 helm repo update
-export must_gather_operator_chart_version=$(helm search keepalived-operator/keepalived-operator | grep keepalived-operator/keepalived-operator | awk '{print $2}')
+export keepalived_operator_chart_version=$(helm search keepalived-operator/keepalived-operator | grep keepalived-operator/keepalived-operator | awk '{print $2}')
 
-helm fetch keepalived-operator/keepalived-operator --version ${must_gather_operator_chart_version}
-helm template keepalived-operator-${must_gather_operator_chart_version}.tgz --namespace keepalived-operator | oc apply -f - -n keepalived-operator
+helm fetch keepalived-operator/keepalived-operator --version ${keepalived_operator_chart_version}
+helm template keepalived-operator-${keepalived_operator_chart_version}.tgz --namespace keepalived-operator | oc apply -f - -n keepalived-operator
 
-rm keepalived-operator-${must_gather_operator_chart_version}.tgz
+rm keepalived-operator-${keepalived_operator_chart_version}.tgz
 ```
 
 ### Deploying directly with manifests
@@ -203,7 +211,7 @@ create a keepalivedgroup
 
 ```shell
 oc adm policy add-scc-to-user privileged -z default -n test-keepalived-operator
-oc apply -f ./test/keepalivedgroup.yaml -n test-keepalived-operator 
+oc apply -f ./test/keepalivedgroup.yaml -n test-keepalived-operator
 ```
 
 annotate the service to be used by keepalived

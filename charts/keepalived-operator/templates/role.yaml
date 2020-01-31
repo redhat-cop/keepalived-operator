@@ -22,6 +22,7 @@ rules:
     - ""
     resources:
     - configmaps
+    - configmaps/finalizers
     verbs:
     - create
     - delete
@@ -50,7 +51,20 @@ rules:
     - list
     - patch
     - update
-    - watch   
+    - watch
+  - apiGroups:
+    - "monitoring.coreos.com"
+    resources:
+    - podmonitors
+    - podmonitors/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch       
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1

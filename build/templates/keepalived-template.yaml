@@ -145,6 +145,7 @@
     name: {{ .KeepalivedGroup.ObjectMeta.Name }}
     labels:
       keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+      metrics: keepalived
   spec:
     selector:
       matchLabels:
