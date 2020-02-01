@@ -323,7 +323,7 @@ func initializeTemplate() (*template.Template, error) {
 				return map[string]string{}
 			}
 			var m map[string]string
-			err := json.Unmarshal([]byte(jsonstr), m)
+			err := json.Unmarshal([]byte(jsonstr), &m)
 			if err != nil {
 				log.Error(err, "unable to unmarshal json ", "string", jsonstr)
 				return map[string]string{}
