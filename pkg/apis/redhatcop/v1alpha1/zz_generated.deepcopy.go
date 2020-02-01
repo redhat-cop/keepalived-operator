@@ -79,6 +79,13 @@ func (in *KeepalivedGroupSpec) DeepCopyInto(out *KeepalivedGroupSpec) {
 			(*out)[key] = val
 		}
 	}
+	if in.VerbatimConfig != nil {
+		in, out := &in.VerbatimConfig, &out.VerbatimConfig
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

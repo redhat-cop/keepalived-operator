@@ -43,6 +43,20 @@ func schema_pkg_apis_redhatcop_v1alpha1_KeepalivedGroupSpec(ref common.Reference
 							Format: "",
 						},
 					},
+					"verbatimConfig": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"interface"},
 			},

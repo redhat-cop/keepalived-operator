@@ -107,12 +107,18 @@
   metadata:
     name: {{ .KeepalivedGroup.ObjectMeta.Name }}
     namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+    labels:
+      keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}    
   data: 
     keepalived.conf: |
       global_defs {
           router_id {{ .KeepalivedGroup.ObjectMeta.Name }}
+{{ range $key,$value := .KeepalivedGroup.Spec.VerbatimConfig }}
+          {{ $key }} {{ $value }}
+{{ end }}                    
       }
-  {{ $root:=. }}    
+  {{ $root:=. }} 
+  {{ $verbatim_key:="keepalived-operator.redhat-cop.io/verbatimconfig"}}   
   {{ range .Services }}
       {{ $namespacedName:=printf "%s/%s" .ObjectMeta.Namespace .ObjectMeta.Name }}
       vrrp_instance {{ $namespacedName }} {
@@ -128,5 +134,21 @@
             {{ . }}
             {{ end }}
           }
+          {{ range $key , $value := (parseJson (index .GetAnnotations $verbatim_key)) }}
+          {{ $key }} {{ $value }}
+          {{ end }}
       }
-  {{ end }}             
+  {{ end }}
+- apiVersion: monitoring.coreos.com/v1
+  kind: PodMonitor
+  metadata:
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    labels:
+      keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+      metrics: keepalived
+  spec:
+    selector:
+      matchLabels:
+        keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    podMetricsEndpoints:
+    - port: metrics       

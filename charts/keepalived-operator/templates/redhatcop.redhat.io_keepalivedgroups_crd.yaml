@@ -37,6 +37,10 @@ spec:
               additionalProperties:
                 type: string
               type: object
+            verbatimConfig:
+              additionalProperties:
+                type: string
+              type: object
           required:
           - interface
           type: object
