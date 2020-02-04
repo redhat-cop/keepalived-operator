@@ -15,10 +15,10 @@ require (
 	github.com/rjeczalik/cmd v0.0.0-20190310140815-f9478ce0b0c6 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/scylladb/go-set v1.0.2
-	github.com/shirou/gopsutil v2.19.12+incompatible // indirect
+	github.com/shirou/gopsutil v2.20.1+incompatible // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/vishvananda/netlink v1.1.0 // indirect
-	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect
+	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v12.0.0+incompatible
