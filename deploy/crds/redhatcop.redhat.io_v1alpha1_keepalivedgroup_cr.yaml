@@ -1,7 +1,8 @@
 apiVersion: redhatcop.redhat.io/v1alpha1
 kind: KeepalivedGroup
 metadata:
-  name: example-keepalivedgroup
+  name: keepalivedgroup-workers
 spec:
-  # Add fields here
-  size: 3
+  interface: ens3
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
