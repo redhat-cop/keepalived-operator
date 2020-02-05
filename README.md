@@ -226,3 +226,14 @@ curl the app using the service IP
 ```shell
 curl http://$SERVICE_IP:8080
 ```
+
+## Release Process
+
+To release execute the following:
+
+```shell
+git tag -a "<version>" -m "release <version>"
+git push upstream <version>
+```
+
+use this version format: vM.m.z
