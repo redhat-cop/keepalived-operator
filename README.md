@@ -144,7 +144,7 @@ oc new-project keepalived-operator
 
 helm repo add keepalived-operator https://redhat-cop.github.io/keepalived-operator
 helm repo update
-export keepalived_operator_chart_version=$(helm search keepalived-operator/keepalived-operator | grep keepalived-operator/keepalived-operator | awk '{print $2}')
+export keepalived_operator_chart_version=$(helm search repo keepalived-operator/keepalived-operator | grep keepalived-operator/keepalived-operator | awk '{print $2}')
 
 helm fetch keepalived-operator/keepalived-operator --version ${keepalived_operator_chart_version}
 helm template keepalived-operator-${keepalived_operator_chart_version}.tgz --namespace keepalived-operator | oc apply -f - -n keepalived-operator

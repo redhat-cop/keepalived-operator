@@ -29,9 +29,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: KEEPALIVED_OPERATOR_IMAGE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.containers[0].image
+              value: quay.io/redhat-cop/keepalived-operator:{{ .Values.image_tag }}
             - name: KEEPALIVEDGROUP_TEMPLATE_FILE_NAME
               value: /templates/keepalived-template.yaml                      
             - name: OPERATOR_NAME
