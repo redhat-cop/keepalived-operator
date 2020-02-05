@@ -3,9 +3,9 @@ entries:
   keepalived-operator:
   - apiVersion: v1
     appVersion: v0.1.0
-    created: "2020-02-05T11:32:11.465569794Z"
+    created: "2020-02-05T15:03:33.013206313Z"
     description: Helm chart that deploys keepalived-operator
-    digest: 0a17b4764090d294f59cd5ceeea21fd9fb16479a63297394bf32a17f8675978e
+    digest: 5dfa0356b481c79bd96fb44aa0403a02450218035fd5a2676a2713c82afc03b6
     engine: gotpl
     keywords:
     - VIP
@@ -16,4 +16,4 @@ entries:
     urls:
     - https://redhat-cop.github.io/keepalived-operator/keepalived-operator/keepalived-operator-v0.1.0.tgz
     version: v0.1.0
-generated: "2020-02-05T11:32:11.465138144Z"
+generated: "2020-02-05T15:03:33.012775831Z"
