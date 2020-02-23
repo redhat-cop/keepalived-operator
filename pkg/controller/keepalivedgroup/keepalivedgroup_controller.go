@@ -256,7 +256,7 @@ func findNextAvailableID(ids []int) (int, error) {
 			return key, nil
 		}
 	}
-	return 0, errors.New("we should never get to this point")
+	return len(ids) + 1, nil
 }
 
 func (r *ReconcileKeepalivedGroup) processTemplate(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (*[]unstructured.Unstructured, error) {
@@ -329,6 +329,15 @@ func initializeTemplate() (*template.Template, error) {
 				return map[string]string{}
 			}
 			return m
+		},
+		"mergeStringSlices": func(lbis []corev1.LoadBalancerIngress, s2 []string) []string {
+			var s1 = []string{}
+			for _, lbi := range lbis {
+				if lbi.IP != "" {
+					s1 = append(s1, lbi.IP)
+				}
+			}
+			return strset.Union(strset.New(s1...), strset.New(s2...)).List()
 		},
 	}).Parse(string(text))
 	if err != nil {

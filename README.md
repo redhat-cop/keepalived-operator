@@ -218,13 +218,21 @@ oc apply -f ./test/keepalivedgroup.yaml -n test-keepalived-operator
 annotate the service to be used by keepalived
 
 ```shell
-oc annotate svc django-psql-example -n test-keepalived-operator cert-utils-operator.redhat-cop.io/KeepalivedGroup=test-keepalived-operator/keepalivedgroup-test
+oc annotate svc django-psql-example -n test-keepalived-operator keepalived-operator.redhat-cop.io/keepalivedgroup=test-keepalived-operator/keepalivedgroup-test
 ```
 
 curl the app using the service IP
 
 ```shell
 curl http://$SERVICE_IP:8080
+```
+
+test with a second keepalived group
+
+```shell
+oc apply -f ./test/test-servicemultiple.yaml -n test-keepalived-operator
+oc apply -f ./test/keepalivedgroup2.yaml -n test-keepalived-operator
+oc apply -f ./test/test-service-g2.yaml -n test-keepalived-operator
 ```
 
 ## Release Process

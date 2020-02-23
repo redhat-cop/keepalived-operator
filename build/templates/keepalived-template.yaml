@@ -127,10 +127,7 @@
           virtual_router_id {{ index $root.KeepalivedGroup.Status.RouterIDs $namespacedName }}  
           
           virtual_ipaddress {
-            {{ range .Status.LoadBalancer.Ingress }}
-            {{ .IP }}
-            {{ end }}
-            {{ range .Spec.ExternalIPs }}
+            {{ range mergeStringSlices .Status.LoadBalancer.Ingress .Spec.ExternalIPs }}
             {{ . }}
             {{ end }}
           }
