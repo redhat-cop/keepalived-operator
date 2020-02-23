@@ -1,0 +1,38 @@
+---
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: svc3
+    annotations:
+      keepalived-operator.redhat-cop.io/keepalivedgroup: test-keepalived-operator/keepalivedgroup-test2
+  spec:
+    ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 6443
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080    
+    type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc4
+  annotations:
+    keepalived-operator.redhat-cop.io/keepalivedgroup: test-keepalived-operator/keepalivedgroup-test2
+spec:
+  externalIPs:
+    - 192.168.131.130
+  type: ClusterIP    
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 6443
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080  

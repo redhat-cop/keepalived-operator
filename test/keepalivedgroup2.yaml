@@ -1,0 +1,8 @@
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: KeepalivedGroup
+metadata:
+  name: keepalivedgroup-test2
+spec:
+  interface: ens3
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
