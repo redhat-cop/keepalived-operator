@@ -1,7 +1,7 @@
 apiVersion: operators.coreos.com/v1
 kind: OperatorSource
 metadata:
-  name: keepalived-operator
+  name: keepalived-operator-package
   namespace: openshift-marketplace
 spec:
   type: appregistry
