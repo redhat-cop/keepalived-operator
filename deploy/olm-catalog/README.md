@@ -53,7 +53,7 @@ AUTH_TOKEN=$(curl -sH "Content-Type: application/json" -XPOST https://quay.io/cn
 Push the catalog to the quay application registry (this is different than a container registry).
 
 ```shell
-operator-courier push deploy/olm-catalog/keepalived-operator $quay_test_repo keepalived-operator $new_version "${AUTH_TOKEN}"
+operator-courier push deploy/olm-catalog/keepalived-operator $quay_test_repo keepalived-operator-package $new_version "${AUTH_TOKEN}"
 ```
 
 Deploy the operator source
