@@ -2,4 +2,4 @@ channels:
 - currentCSV: keepalived-operator.v0.1.0
   name: alpha
 defaultChannel: alpha
-packageName: keepalived-operator-package
+packageName: keepalived-operator
