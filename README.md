@@ -6,7 +6,7 @@ The keepalived operator can be used in all environments that allows nodes to adv
 
 One possible use of the keepalived operator is also to support [OpenShift Ingresses](https://docs.openshift.com/container-platform/4.3/networking/configuring-ingress-cluster-traffic/overview-traffic.html) in environments where an external load balancer cannot be provisioned.
 
-## how it works
+## How it works
 
 The keepalived operator will create one or more [VIPs](https://en.wikipedia.org/wiki/Virtual_IP_address) (an HA IP that floats between multiple nodes), based on the [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) services and/or services requesting [`ExternalIPs`](https://kubernetes.io/docs/concepts/services-networking/service/#external-ips).
 
