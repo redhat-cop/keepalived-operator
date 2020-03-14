@@ -1,5 +1,7 @@
 # Keepalived operator
 
+[![Build Status](https://travis-ci.org/redhat-cop/keepalived-operator.svg?branch=master)](https://travis-ci.org/redhat-cop/keepalived-operator) [![Docker Repository on Quay](https://quay.io/repository/redhat-cop/keepalived-operator/status "Docker Repository on Quay")](https://quay.io/repository/redhat-cop/keepalived-operator)
+
 The objective of the keepalived operator provides is to allow for a way to create self-hosted load balancers in an automated way. From a user experience point of view the behavior is the same as of when creating [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)  services with a cloud provider able to manage them.
 
 The keepalived operator can be used in all environments that allows nodes to advertise additional IPs on their NICs (and at least for now, in networks that allow multicast), however it's mainly aimed at supporting LoadBalancer services and ExternalIPs on bare metal installations (or other installation environments where a cloud provider is not available).
