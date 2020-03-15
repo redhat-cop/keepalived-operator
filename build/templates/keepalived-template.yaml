@@ -136,6 +136,7 @@
           {{ end }}
       }
   {{ end }}
+{{ if eq .Misc.supportsPodMonitor "true" }}
 - apiVersion: monitoring.coreos.com/v1
   kind: PodMonitor
   metadata:
@@ -148,4 +149,5 @@
       matchLabels:
         keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
     podMetricsEndpoints:
-    - port: metrics       
+    - port: metrics
+{{ end}}
