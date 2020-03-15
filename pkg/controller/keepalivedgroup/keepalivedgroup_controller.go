@@ -30,14 +30,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-const controllerName = "keepalived-controller"
-const templateFileNameEnv = "KEEPALIVEDGROUP_TEMPLATE_FILE_NAME"
-const imageNameEnv = "KEEPALIVED_OPERATOR_IMAGE_NAME"
-const keepalivedGroupAnnotation = "keepalived-operator.redhat-cop.io/keepalivedgroup"
-const keepalivedGroupVerbatimConfigAnnotation = "keepalived-operator.redhat-cop.io/verbatimconfig"
+const (
+	controllerName                          = "keepalived-controller"
+	templateFileNameEnv                     = "KEEPALIVEDGROUP_TEMPLATE_FILE_NAME"
+	imageNameEnv                            = "KEEPALIVED_OPERATOR_IMAGE_NAME"
+	keepalivedGroupAnnotation               = "keepalived-operator.redhat-cop.io/keepalivedgroup"
+	keepalivedGroupVerbatimConfigAnnotation = "keepalived-operator.redhat-cop.io/verbatimconfig"
+	podMonitorAPIVersion                    = "monitoring.coreos.com/v1"
+	podMonitorKind                          = "PodMonitor"
+)
 
 var log = logf.Log.WithName(controllerName)
 var keepalivedTemplate *template.Template
+var supportsPodMonitors = "false"
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
@@ -58,8 +63,32 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+
+	reconcilerBase := util.NewReconcilerBase(mgr.GetClient(), mgr.GetScheme(), mgr.GetConfig(), mgr.GetEventRecorderFor(controllerName))
+
+	discoveryClient, err := reconcilerBase.GetDiscoveryClient()
+
+	if err != nil {
+		log.Error(err, "failed to initialize discovery client")
+		return nil
+	}
+
+	resources, resourcesErr := discoveryClient.ServerResourcesForGroupVersion(podMonitorAPIVersion)
+
+	if resourcesErr != nil {
+		log.Error(err, "failed to discover resources")
+		return nil
+	}
+
+	for _, apiResource := range resources.APIResources {
+		if apiResource.Kind == podMonitorKind {
+			supportsPodMonitors = "true"
+			break
+		}
+	}
+
 	return &ReconcileKeepalivedGroup{
-		ReconcilerBase: util.NewReconcilerBase(mgr.GetClient(), mgr.GetScheme(), mgr.GetConfig(), mgr.GetEventRecorderFor(controllerName)),
+		ReconcilerBase: reconcilerBase,
 	}
 }
 
@@ -272,7 +301,8 @@ func (r *ReconcileKeepalivedGroup) processTemplate(instance *redhatcopv1alpha1.K
 		instance,
 		services,
 		map[string]string{
-			"image": imagename,
+			"image":              imagename,
+			"supportsPodMonitor": supportsPodMonitors,
 		},
 	}, keepalivedTemplate)
 	if err != nil {
