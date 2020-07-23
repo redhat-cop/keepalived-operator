@@ -188,7 +188,13 @@ docker login $REPOSITORY
 make manager docker-build docker-push-latest
 export KEEPALIVED_OPERATOR_IMAGE_NAME=${REPOSITORY}:latest
 export KEEPALIVEDGROUP_TEMPLATE_FILE_NAME=./build/templates/keepalived-template.yaml
-OPERATOR_NAME='keepalived-operator' operator-sdk --verbose up local --namespace ""
+oc new-project keepalived-operator
+oc apply -f deploy/service_account.yaml -n keepalived-operator
+oc apply -f deploy/role.yaml -n keepalived-operator
+oc apply -f deploy/role_binding.yaml -n keepalived-operator
+export token=$(oc serviceaccounts get-token 'keepalived-operator' -n keepalived-operator)
+oc login --token=${token}
+OPERATOR_NAME='keepalived-operator' operator-sdk --verbose run  local --watch-namespace "" --operator-flags="--zap-level=debug"
 ```
 
 ## Testing

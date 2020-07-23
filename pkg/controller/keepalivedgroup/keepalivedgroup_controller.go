@@ -309,7 +309,7 @@ func (r *ReconcileKeepalivedGroup) processTemplate(instance *redhatcopv1alpha1.K
 		log.Error(err, "unable to process template")
 		return &[]unstructured.Unstructured{}, err
 	}
-	return objs, nil
+	return &objs, nil
 }
 
 func (r *ReconcileKeepalivedGroup) getReferencingServices(instance *redhatcopv1alpha1.KeepalivedGroup) ([]corev1.Service, error) {
