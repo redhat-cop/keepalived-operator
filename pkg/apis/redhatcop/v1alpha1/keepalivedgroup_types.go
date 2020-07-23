@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	"github.com/redhat-cop/operator-utils/pkg/util/apis"
+	"github.com/operator-framework/operator-sdk/pkg/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -31,16 +31,16 @@ type KeepalivedGroupStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	apis.ReconcileStatus `json:",inline"`
-	RouterIDs            map[string]int `json:"routerIDs,omitempty"`
+	Conditions status.Conditions `json:"conditions,omitempty"`
+	RouterIDs  map[string]int    `json:"routerIDs,omitempty"`
 }
 
-func (m *KeepalivedGroup) GetReconcileStatus() apis.ReconcileStatus {
-	return m.Status.ReconcileStatus
+func (m *KeepalivedGroup) GetReconcileStatus() status.Conditions {
+	return m.Status.Conditions
 }
 
-func (m *KeepalivedGroup) SetReconcileStatus(reconcileStatus apis.ReconcileStatus) {
-	m.Status.ReconcileStatus = reconcileStatus
+func (m *KeepalivedGroup) SetReconcileStatus(reconcileStatus status.Conditions) {
+	m.Status.Conditions = reconcileStatus
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
