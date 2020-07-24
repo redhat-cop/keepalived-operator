@@ -2,8 +2,23 @@ apiVersion: v1
 entries:
   keepalived-operator:
   - apiVersion: v1
+    appVersion: v0.2.0
+    created: "2020-07-24T00:22:10.947894383Z"
+    description: Helm chart that deploys keepalived-operator
+    digest: c832a1a808c313acf784848898fb511eaa34c35695e7f3986eaa3cbe631ce80b
+    engine: gotpl
+    keywords:
+    - VIP
+    - load balancer
+    name: keepalived-operator
+    sources:
+    - https://github.com/redhat-cop/keepalived-operator
+    urls:
+    - https://redhat-cop.github.io/keepalived-operator/keepalived-operator/keepalived-operator-v0.2.0.tgz
+    version: v0.2.0
+  - apiVersion: v1
     appVersion: v0.1.0
-    created: "2020-02-25T19:46:51.288745352Z"
+    created: "2020-07-24T00:22:10.947642865Z"
     description: Helm chart that deploys keepalived-operator
     digest: a12d43c32001ab7d9f7490367f5baa7fe67e723007a102efdc636f3c2254fba9
     engine: gotpl
@@ -16,4 +31,4 @@ entries:
     urls:
     - https://redhat-cop.github.io/keepalived-operator/keepalived-operator/keepalived-operator-v0.1.0.tgz
     version: v0.1.0
-generated: "2020-02-25T19:46:51.288353714Z"
+generated: "2020-07-24T00:22:10.947213893Z"
