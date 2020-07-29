@@ -253,7 +253,9 @@ spec:
                 - keepalived-operator
                 env:
                 - name: WATCH_NAMESPACE
-                  value: ""
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
