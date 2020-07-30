@@ -25,7 +25,7 @@
         shareProcessNamespace: true
         containers:
         - name: keepalived
-          image: "registry.redhat.io/openshift4/ose-keepalived-ipfailover"
+          image: {{ .KeepalivedGroup.Spec.Image }}
           command:
           - /usr/sbin/keepalived
           - -l
