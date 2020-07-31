@@ -18,6 +18,9 @@ type KeepalivedGroupSpec struct {
 	// +kubebuilder:validation:Optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 
+	// +kubebuilder:validation:Optional
+	Image string `json:"image,omitempty"`
+
 	// +kubebuilder:validation:Required
 	Interface string `json:"interface"`
 

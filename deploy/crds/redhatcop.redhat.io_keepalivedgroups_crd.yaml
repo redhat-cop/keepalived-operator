@@ -31,6 +31,8 @@ spec:
         spec:
           description: KeepalivedGroupSpec defines the desired state of KeepalivedGroup
           properties:
+            image:
+              type: string
             interface:
               type: string
             nodeSelector:

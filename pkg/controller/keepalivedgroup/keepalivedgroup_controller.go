@@ -337,6 +337,15 @@ func (r *ReconcileKeepalivedGroup) getReferencingServices(instance *redhatcopv1a
 	return result, nil
 }
 
+func (r *ReconcileKeepalivedGroup) IsInitialized(instance *redhatcopv1alpha1.KeepalivedGroup) bool {
+	initialized := true
+	if instance.Spec.Image == "" {
+		instance.Spec.Image = "registry.redhat.io/openshift4/ose-keepalived-ipfailover"
+		initialized = false
+	}
+	return initialized
+}
+
 func initializeTemplate() (*template.Template, error) {
 	templateFileName, ok := os.LookupEnv(templateFileNameEnv)
 	if !ok {
