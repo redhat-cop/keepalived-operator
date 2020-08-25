@@ -27,10 +27,15 @@
         - name: keepalived
           image: {{ .KeepalivedGroup.Spec.Image }}
           command:
-          - "/bin/sh"
+          - /usr/sbin/keepalived
+          - -l
+          - -D
+          - -n
           args:
-          - -c
-          - "pkill -f ^/usr/sbin/keepalived; /usr/sbin/keepalived -l -D -n -f /etc/keepalived.d/keepalived.conf -p /etc/keepalived.pid/keepalived.pid"
+          - -f
+          - /etc/keepalived.d/keepalived.conf
+          - -p
+          - /etc/keepalived.pid/keepalived.pid
           volumeMounts:
           - mountPath: /lib/modules
             name: lib-modules
@@ -94,7 +99,8 @@
           configMap:
             name: {{ .KeepalivedGroup.ObjectMeta.Name }}
         - name: pid
-          emptyDir: {}
+          emptyDir:
+            medium: Memory
         - name: stats
           emptyDir: {}                                
 - apiVersion: v1
