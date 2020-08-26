@@ -21,8 +21,8 @@ metadata:
     capabilities: Deep Insights
     categories: Networking, Cloud Provider
     certified: "false"
-    containerImage: quay.io/redhat-cop/keepalived-operator:latest
-    createdAt: 02/04/2020
+    containerImage: quay.io/redhat-cop/keepalived-operator:v0.2.2
+    createdAt: 08/25/2020
     description: This operator provides a simple way to create self-hosted load balancers
       using keepalived.
     repository: https://github.com/redhat-cop/keepalived-operator
@@ -287,12 +287,12 @@ spec:
   - name: repository
     url: https://github.com/redhat-cop/keepalived-operator
   - name: containerImage
-    url: https://quay.io/redhat-cop/keepalived-operator:v0.2.2
+    url: https://quay.io/redhat-cop/keepalived-operator
   maintainers:
   - email: rspazzol@redhat.com
     name: Raffaele Spazzoli
   maturity: alpha
   provider:
-    name: Containers & PaaS CoP
+    name: Red Hat Community of Practice
   replaces: keepalived-operator.v0.2.1
   version: 0.2.2
