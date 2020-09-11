@@ -90,7 +90,9 @@
             name: lib-modules
             readOnly: true
           - mountPath: /tmp
-            name: stats                                                                                             
+            name: stats
+        tolerations:
+          - operator: Exists                                                                                             
         volumes:
         - hostPath:
             path: /lib/modules
