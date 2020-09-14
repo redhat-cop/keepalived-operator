@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"sort"
 	"strings"
 	"text/template"
 
@@ -236,10 +235,26 @@ func getNamespaceNameKey(obj metav1.Object) string {
 	return obj.GetNamespace() + "/" + obj.GetName()
 }
 
+func isInList(sid int, ids []int) bool {
+	for _, id := range ids {
+		if sid == id {
+			return true
+		}
+	}
+	return false
+}
+
 func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (bool, error) {
 	assignedServices := []string{}
-	for key := range instance.Status.RouterIDs {
-		assignedServices = append(assignedServices, key)
+	assignedIDs := []int{}
+	if len(instance.Spec.BlacklistRouterIDs) > 0 {
+		assignedIDs = append(assignedIDs, instance.Spec.BlacklistRouterIDs...)
+	}
+	for key, val := range instance.Status.RouterIDs {
+		// if previously assigned id is in blacklist, do not consider as assigned
+		if !isInList(val, assignedIDs) {
+			assignedServices = append(assignedServices, key)
+		}
 	}
 	lbServices := []string{}
 	for _, service := range services {
@@ -253,7 +268,6 @@ func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []cor
 	for _, value := range toBeRemovedSet.List() {
 		delete(instance.Status.RouterIDs, value)
 	}
-	assignedIDs := []int{}
 	for _, value := range instance.Status.RouterIDs {
 		assignedIDs = append(assignedIDs, value)
 	}
@@ -273,19 +287,12 @@ func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []cor
 }
 
 func findNextAvailableID(ids []int) (int, error) {
-	if len(ids) == 0 {
-		return 1, nil
-	}
-	if len(ids) > 255 {
-		return 0, errors.New("cannot allocate more than 255 ids in one keepalived group")
-	}
-	sort.Ints(ids)
-	for key, value := range ids {
-		if key < (value - 1) {
-			return key, nil
+	for i := 1; i < 255; i++ {
+		if !isInList(i, ids) {
+			return i, nil
 		}
 	}
-	return len(ids) + 1, nil
+	return 0, errors.New("cannot allocate more than 255 ids in one keepalived group")
 }
 
 func (r *ReconcileKeepalivedGroup) processTemplate(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (*[]unstructured.Unstructured, error) {
