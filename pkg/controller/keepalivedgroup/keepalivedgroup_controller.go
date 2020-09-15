@@ -249,12 +249,14 @@ func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []cor
 	assignedIDs := []int{}
 	if len(instance.Spec.BlacklistRouterIDs) > 0 {
 		assignedIDs = append(assignedIDs, instance.Spec.BlacklistRouterIDs...)
-	}
-	for key, val := range instance.Status.RouterIDs {
-		// if previously assigned id is in blacklist, do not consider as assigned
-		if !isInList(val, assignedIDs) {
-			assignedServices = append(assignedServices, key)
+		for key, val := range instance.Status.RouterIDs {
+			if isInList(val, instance.Spec.BlacklistRouterIDs) {
+				delete(instance.Status.RouterIDs, key)
+			}
 		}
+	}
+	for key := range instance.Status.RouterIDs {
+		assignedServices = append(assignedServices, key)
 	}
 	lbServices := []string{}
 	for _, service := range services {
