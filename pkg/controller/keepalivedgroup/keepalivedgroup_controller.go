@@ -412,7 +412,7 @@ func (e *enqueueRequestForReferredKeepAlivedGroup) Update(evt event.UpdateEvent,
 	if ok {
 		namespaced, err := getNamespacedName(keepalivedGroup)
 		if err != nil {
-			log.Error(err, "unable to create namespaced name from", "annotation", keepalivedGroupAnnotation, "value", keepalivedGroup)
+			log.Info(err.Error(), "unable to create namespaced name from MetaNew", "annotation", keepalivedGroupAnnotation, "value", keepalivedGroup)
 		} else {
 			q.Add(reconcile.Request{NamespacedName: namespaced})
 		}
@@ -421,7 +421,7 @@ func (e *enqueueRequestForReferredKeepAlivedGroup) Update(evt event.UpdateEvent,
 	if ok {
 		namespaced, err := getNamespacedName(keepalivedGroup)
 		if err != nil {
-			log.Error(err, "unable to create namespaced name from", "annotation", keepalivedGroupAnnotation, "value", keepalivedGroup)
+			log.Info(err.Error(), "unable to create namespaced name from MetaOld", "annotation", keepalivedGroupAnnotation, "value", keepalivedGroup)
 		} else {
 			q.Add(reconcile.Request{NamespacedName: namespaced})
 		}
