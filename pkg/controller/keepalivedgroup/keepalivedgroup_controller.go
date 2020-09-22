@@ -235,23 +235,17 @@ func getNamespaceNameKey(obj metav1.Object) string {
 	return obj.GetNamespace() + "/" + obj.GetName()
 }
 
-func isInList(sid int, ids []int) bool {
-	for _, id := range ids {
-		if sid == id {
-			return true
-		}
-	}
-	return false
-}
-
 func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (bool, error) {
 	assignedServices := []string{}
 	assignedIDs := []int{}
 	if len(instance.Spec.BlacklistRouterIDs) > 0 {
 		assignedIDs = append(assignedIDs, instance.Spec.BlacklistRouterIDs...)
 		for key, val := range instance.Status.RouterIDs {
-			if isInList(val, instance.Spec.BlacklistRouterIDs) {
-				delete(instance.Status.RouterIDs, key)
+			for _, id := range instance.Spec.BlacklistRouterIDs {
+				if val == id {
+					delete(instance.Status.RouterIDs, key)
+					break
+				}
 			}
 		}
 	}
@@ -290,7 +284,14 @@ func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []cor
 
 func findNextAvailableID(ids []int) (int, error) {
 	for i := 1; i < 255; i++ {
-		if !isInList(i, ids) {
+		used := false
+		for _, id := range ids {
+			if id == i {
+				used = true
+				break
+			}
+		}
+		if !used {
 			return i, nil
 		}
 	}
