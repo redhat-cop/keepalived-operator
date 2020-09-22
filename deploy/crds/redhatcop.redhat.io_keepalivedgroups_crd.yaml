@@ -35,6 +35,7 @@ spec:
               items:
                 type: integer
               type: array
+              uniqueItems: true
             image:
               type: string
             interface:
