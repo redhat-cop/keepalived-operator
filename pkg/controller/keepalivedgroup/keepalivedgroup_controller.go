@@ -234,10 +234,6 @@ func (r *ReconcileKeepalivedGroup) Reconcile(request reconcile.Request) (reconci
 	return r.ManageSuccess(instance)
 }
 
-// func getNamespaceNameKey(obj metav1.Object) string {
-// 	return obj.GetNamespace() + "/" + obj.GetName()
-// }
-
 func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (bool, error) {
 	assignedServices := []string{}
 	assignedIDs := []int{}
