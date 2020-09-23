@@ -32,6 +32,9 @@ spec:
   interface: ens3
   nodeSelector:
     node-role.kubernetes.io/loadbalancer: ""
+  blacklistRouterIDs:
+  - 1
+  - 2  
 ```
 
 This KeepalivedGroup will be deployed on all the nodes with role `loadbalancer`. One must also specify the network device on which the VIPs will be exposed, it is assumed that all the nodes have the same network device configuration.
@@ -69,6 +72,10 @@ export ALLOWED_CIDR="192.168.131.128/26"
 export AUTOASSIGNED_CIDR="192.168.131.192/26"
 oc patch network cluster -p "$(envsubst < ./network-patch.yaml | yq -j .)" --type=merge
 ```
+
+## Blacklisting router IDs
+
+If the Keepalived pods are deployed on nodes which are in the same network (same broadcast domain to be precise) with other keepalived the process, it's necessary to ensure that there is no collision between the used routers it. For this purpose it is possible to provide a `blacklistRouterIDs` field with a list of black-listed IDs that will not be used.
 
 ## Verbatim Configurations
 

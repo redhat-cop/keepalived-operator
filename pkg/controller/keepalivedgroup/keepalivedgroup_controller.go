@@ -6,11 +6,14 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 	"text/template"
 
 	redhatcopv1alpha1 "github.com/redhat-cop/keepalived-operator/pkg/apis/redhatcop/v1alpha1"
 	"github.com/redhat-cop/operator-utils/pkg/util"
+	"github.com/redhat-cop/operator-utils/pkg/util/apis"
+	"github.com/scylladb/go-set/iset"
 	"github.com/scylladb/go-set/strset"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -231,9 +234,9 @@ func (r *ReconcileKeepalivedGroup) Reconcile(request reconcile.Request) (reconci
 	return r.ManageSuccess(instance)
 }
 
-func getNamespaceNameKey(obj metav1.Object) string {
-	return obj.GetNamespace() + "/" + obj.GetName()
-}
+// func getNamespaceNameKey(obj metav1.Object) string {
+// 	return obj.GetNamespace() + "/" + obj.GetName()
+// }
 
 func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (bool, error) {
 	assignedServices := []string{}
@@ -254,7 +257,7 @@ func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []cor
 	}
 	lbServices := []string{}
 	for _, service := range services {
-		lbServices = append(lbServices, getNamespaceNameKey(&service))
+		lbServices = append(lbServices, apis.GetKeyShort(&service))
 	}
 	assignedServicesSet := strset.New(assignedServices...)
 	lbServicesSet := strset.New(lbServices...)
@@ -267,6 +270,9 @@ func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []cor
 	for _, value := range instance.Status.RouterIDs {
 		assignedIDs = append(assignedIDs, value)
 	}
+	// remove potential duplicates and sort
+	assignedIDs = iset.New(assignedIDs...).List()
+	sort.Ints(assignedIDs)
 	if instance.Status.RouterIDs == nil {
 		instance.Status.RouterIDs = map[string]int{}
 	}
@@ -283,19 +289,19 @@ func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []cor
 }
 
 func findNextAvailableID(ids []int) (int, error) {
-	for i := 1; i < 255; i++ {
-		used := false
-		for _, id := range ids {
-			if id == i {
-				used = true
-				break
-			}
-		}
-		if !used {
-			return i, nil
+	if len(ids) == 0 {
+		return 1, nil
+	}
+	if len(ids) > 255 {
+		return 0, errors.New("cannot allocate more than 255 ids in one keepalived group")
+	}
+	sort.Ints(ids)
+	for key, value := range ids {
+		if key < (value - 1) {
+			return key, nil
 		}
 	}
-	return 0, errors.New("cannot allocate more than 255 ids in one keepalived group")
+	return len(ids) + 1, nil
 }
 
 func (r *ReconcileKeepalivedGroup) processTemplate(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (*[]unstructured.Unstructured, error) {
@@ -336,7 +342,7 @@ func (r *ReconcileKeepalivedGroup) getReferencingServices(instance *redhatcopv1a
 		if ok && (service.Spec.Type == corev1.ServiceTypeLoadBalancer || len(service.Spec.ExternalIPs) > 0) {
 			namespacedName, err := getNamespacedName(value)
 			if err != nil {
-				log.Error(err, "unable to create namespaced name from ", "service", getNamespaceNameKey(&service), "annotation", keepalivedGroupAnnotation, "value", value)
+				log.Error(err, "unable to create namespaced name from ", "service", apis.GetKeyShort(&service), "annotation", keepalivedGroupAnnotation, "value", value)
 				continue
 			}
 			if namespacedName.Name == instance.GetName() && namespacedName.Namespace == instance.GetNamespace() {
