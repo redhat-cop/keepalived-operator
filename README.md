@@ -2,11 +2,11 @@
 
 [![Build Status](https://travis-ci.org/redhat-cop/keepalived-operator.svg?branch=master)](https://travis-ci.org/redhat-cop/keepalived-operator) [![Docker Repository on Quay](https://quay.io/repository/redhat-cop/keepalived-operator/status "Docker Repository on Quay")](https://quay.io/repository/redhat-cop/keepalived-operator)
 
-The objective of the keepalived operator provides is to allow for a way to create self-hosted load balancers in an automated way. From a user experience point of view the behavior is the same as of when creating [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)  services with a cloud provider able to manage them.
+The objective of the keepalived operator is to allow for a way to create self-hosted load balancers in an automated way. From a user experience point of view the behavior is the same as of when creating [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) services with a cloud provider able to manage them.
 
 The keepalived operator can be used in all environments that allows nodes to advertise additional IPs on their NICs (and at least for now, in networks that allow multicast), however it's mainly aimed at supporting LoadBalancer services and ExternalIPs on bare metal installations (or other installation environments where a cloud provider is not available).
 
-One possible use of the keepalived operator is also to support [OpenShift Ingresses](https://docs.openshift.com/container-platform/4.3/networking/configuring-ingress-cluster-traffic/overview-traffic.html) in environments where an external load balancer cannot be provisioned.
+One possible use of the keepalived operator is also to support [OpenShift Ingresses](https://docs.openshift.com/container-platform/4.5/networking/configuring_ingress_cluster_traffic/overview-traffic.html) in environments where an external load balancer cannot be provisioned.
 
 ## How it works
 
@@ -47,13 +47,23 @@ The image used for the keepalived containers can be specified with `.Spec.Image`
 
 ## Requirements
 
-Each KeepalivedGroup deploys a [daemonset](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that requires the [privileged scc](https://docs.openshift.com/container-platform/4.3/authentication/managing-security-context-constraints.html), this permission must be given to the `default` service account in the namespace where the keepalived group is created by and administrator.
+### Security Context Constraints
+
+Each KeepalivedGroup deploys a [daemonset](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that requires the [privileged scc](https://docs.openshift.com/container-platform/4.5/authentication/managing-security-context-constraints.html), this permission must be given to the `default` service account in the namespace where the keepalived group is created by and administrator.
 
 ```shell
 oc adm policy add-scc-to-user privileged -z default -n keepalived-operator
 ```
 
-For OpenShift users only, it is necessary to allow for `LoadBalancer` VIPS to be automatically assigned by the systems and for `ExternalIPs` to be selected by the users. This can be done by patching the cluster network. Here is an example of the patch:
+### Cluster Network Operator
+
+In Openshift, use of an external IP address is governed by the following fields in the `Network.config.openshift.io` CR named `cluster`
+
+* `spec.externalIP.autoAssignCIDRs` defines an IP address block used by the load balancer when choosing an external IP address for the service. OpenShift supports only a single IP address block for automatic assignment.
+
+* `spec.externalIP.policy` defines the permissible IP address blocks when manually specifying an IP address. OpenShift does not apply policy rules to IP address blocks defined by `spec.externalIP.autoAssignCIDRs`
+
+The following patch can be used to configure the Cluster Network Operator:
 
 ```yaml
 spec:
@@ -65,21 +75,23 @@ spec:
       - "${AUTOASSIGNED_CIDR}"
 ```
 
-and here is an example of how to apply the patch:
+Here is an example of how to apply the patch:
 
 ```shell
 export ALLOWED_CIDR="192.168.131.128/26"
 export AUTOASSIGNED_CIDR="192.168.131.192/26"
-oc patch network cluster -p "$(envsubst < ./network-patch.yaml | yq -j .)" --type=merge
+oc patch network cluster -p "$(envsubst < ./network-patch.yaml | yq r -j -)" --type=merge
 ```
+Additionally, the fields can be edited manually via `oc edit Network.config.openshift.io cluster`
 
 ## Blacklisting router IDs
 
-If the Keepalived pods are deployed on nodes which are in the same network (same broadcast domain to be precise) with other keepalived the process, it's necessary to ensure that there is no collision between the used routers it. For this purpose it is possible to provide a `blacklistRouterIDs` field with a list of black-listed IDs that will not be used.
+If the Keepalived pods are deployed on nodes which are in the same network (same broadcast domain to be precise) with other keepalived the process, it's necessary to ensure that there is no collision between the used routers it. 
+For this purpose it is possible to provide a `blacklistRouterIDs` field with a list of black-listed IDs that will not be used.
 
 ## Verbatim Configurations
 
-Keepalived has dozens of [configurations](https://www.keepalived.org/manpage.html). At the early stage of this project it's difficult to tell which one should me modeled in the API. Yet, users of this project may still need to use them. To account for that there is a way to pass verbatim options both at the keepalived group level (which maps to the keepalived config `global_defs` section) and at the service level (which maps to the keepalived config `vrrp_instance` section).
+Keepalived has dozens of [configurations](https://www.keepalived.org/manpage.html). At the early stage of this project it's difficult to tell which one should be modeled in the API. Yet, users of this project may still need to use them. To account for that there is a way to pass verbatim options both at the keepalived group level (which maps to the keepalived config `global_defs` section) and at the service level (which maps to the keepalived config `vrrp_instance` section).
 
 KeepalivedGroup-level verbatim configurations can be passed as in the following example:
 
@@ -192,12 +204,13 @@ go mod vendor
 Using the [operator-sdk](https://github.com/operator-framework/operator-sdk), run the operator locally:
 
 ```shell
-oc apply -f deploy/crds/redhatcop.redhat.io_keepalivedgroups_crd.yaml
 export REPOSITORY=quay.io/<your_repo>/keepalived-operator
-docker login $REPOSITORY
-make manager docker-build docker-push-latest
 export KEEPALIVED_OPERATOR_IMAGE_NAME=${REPOSITORY}:latest
 export KEEPALIVEDGROUP_TEMPLATE_FILE_NAME=./build/templates/keepalived-template.yaml
+docker login $REPOSITORY
+make manager docker-build docker-push-latest
+operator-sdk generate crds --crd-version v1beta1
+oc apply -f deploy/crds/redhatcop.redhat.io_keepalivedgroups_crd.yaml
 oc new-project keepalived-operator
 oc apply -f deploy/service_account.yaml -n keepalived-operator
 oc apply -f deploy/role.yaml -n keepalived-operator
@@ -209,11 +222,11 @@ OPERATOR_NAME='keepalived-operator' operator-sdk --verbose run  local --watch-na
 
 ## Testing
 
-Add an external ID CIDR to your cluster to manage
+Add an external IP CIDR to your cluster to manage
 
 ```shell
 export CIDR="192.168.130.128/28"
-oc patch network cluster -p "$(envsubts < ./test/externalIP-patch.yaml | yq -j .)" --type=merge
+oc patch network cluster -p "$(envsubst < ./test/externalIP-patch.yaml | yq r -j -)" --type=merge
 ```
 
 create a project that uses a LoadBalancer Service

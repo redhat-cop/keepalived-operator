@@ -117,11 +117,16 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	isAnnotatedService := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			service, ok := e.ObjectNew.DeepCopyObject().(*corev1.Service)
-			if !ok {
-				return false
+			if ok {
+				if _, ok := service.GetAnnotations()[keepalivedGroupAnnotation]; ok && (service.Spec.Type == corev1.ServiceTypeLoadBalancer || len(service.Spec.ExternalIPs) > 0) {
+					return true
+				}
 			}
-			if _, ok := service.GetAnnotations()[keepalivedGroupAnnotation]; ok && (service.Spec.Type == corev1.ServiceTypeLoadBalancer || len(service.Spec.ExternalIPs) > 0) {
-				return true
+			service, ok = e.ObjectOld.DeepCopyObject().(*corev1.Service)
+			if ok {
+				if _, ok := service.GetAnnotations()[keepalivedGroupAnnotation]; ok && (service.Spec.Type == corev1.ServiceTypeLoadBalancer || len(service.Spec.ExternalIPs) > 0) {
+					return true
+				}
 			}
 			return false
 		},
@@ -419,10 +424,19 @@ func (e *enqueueRequestForReferredKeepAlivedGroup) Update(evt event.UpdateEvent,
 	if ok {
 		namespaced, err := getNamespacedName(keepalivedGroup)
 		if err != nil {
-			log.Error(err, "unable to create namespaced name from", "annotation", keepalivedGroupAnnotation, "value", keepalivedGroup)
-			return
+			log.Info(err.Error(), "unable to create namespaced name from MetaNew", "annotation", keepalivedGroupAnnotation, "value", keepalivedGroup)
+		} else {
+			q.Add(reconcile.Request{NamespacedName: namespaced})
 		}
-		q.Add(reconcile.Request{NamespacedName: namespaced})
+	}
+	keepalivedGroup, ok = evt.MetaOld.GetAnnotations()[keepalivedGroupAnnotation]
+	if ok {
+		namespaced, err := getNamespacedName(keepalivedGroup)
+		if err != nil {
+			log.Info(err.Error(), "unable to create namespaced name from MetaOld", "annotation", keepalivedGroupAnnotation, "value", keepalivedGroup)
+		} else {
+			q.Add(reconcile.Request{NamespacedName: namespaced})
+		}
 	}
 }
 
