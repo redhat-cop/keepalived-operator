@@ -26,6 +26,9 @@ type KeepalivedGroupSpec struct {
 
 	// +kubebuilder:validation:Optional
 	VerbatimConfig map[string]string `json:"verbatimConfig,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	BlacklistRouterIDs []int `json:"blacklistRouterIDs,omitempty"`
 }
 
 // KeepalivedGroupStatus defines the observed state of KeepalivedGroup

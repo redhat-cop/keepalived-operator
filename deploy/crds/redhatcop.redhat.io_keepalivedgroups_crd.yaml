@@ -31,6 +31,10 @@ spec:
         spec:
           description: KeepalivedGroupSpec defines the desired state of KeepalivedGroup
           properties:
+            blacklistRouterIDs:
+              items:
+                type: integer
+              type: array
             image:
               type: string
             interface:
