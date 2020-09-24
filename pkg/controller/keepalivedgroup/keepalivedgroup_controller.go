@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"sort"
 	"strings"
 	"text/template"
 
@@ -273,7 +272,6 @@ func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []cor
 	}
 	// remove potential duplicates and sort
 	assignedIDs = iset.New(assignedIDs...).List()
-	sort.Ints(assignedIDs)
 	if instance.Status.RouterIDs == nil {
 		instance.Status.RouterIDs = map[string]int{}
 	}
@@ -293,7 +291,6 @@ func findNextAvailableID(ids []int) (int, error) {
 	if len(ids) == 0 {
 		return 1, nil
 	}
-	sort.Ints(ids)
 	usedSet := iset.New(ids...)
 	for i := 1; i <= 255; i++ {
 		used := false
