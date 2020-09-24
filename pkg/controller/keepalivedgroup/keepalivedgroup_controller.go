@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"sort"
 	"strings"
 	"text/template"
 
@@ -273,7 +272,6 @@ func assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []cor
 	}
 	// remove potential duplicates and sort
 	assignedIDs = iset.New(assignedIDs...).List()
-	sort.Ints(assignedIDs)
 	if instance.Status.RouterIDs == nil {
 		instance.Status.RouterIDs = map[string]int{}
 	}
@@ -293,16 +291,17 @@ func findNextAvailableID(ids []int) (int, error) {
 	if len(ids) == 0 {
 		return 1, nil
 	}
-	if len(ids) > 255 {
-		return 0, errors.New("cannot allocate more than 255 ids in one keepalived group")
-	}
-	sort.Ints(ids)
-	for key, value := range ids {
-		if key < (value - 1) {
-			return key, nil
+	usedSet := iset.New(ids...)
+	for i := 1; i <= 255; i++ {
+		used := false
+		if usedSet.Has(i) {
+			used = true
+		}
+		if !used {
+			return i, nil
 		}
 	}
-	return len(ids) + 1, nil
+	return 0, errors.New("cannot allocate more than 255 ids in one keepalived group")
 }
 
 func (r *ReconcileKeepalivedGroup) processTemplate(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (*[]unstructured.Unstructured, error) {
