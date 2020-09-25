@@ -93,13 +93,19 @@ For this purpose it is possible to provide a `blacklistRouterIDs` field with a l
 
 When IPI is used for RHV, vSphere, OSP or bare metal platforms, three keepalived VIPs are deployed. To make sure that keepalived-operator can work in these environment we need to discover and blacklist the corresponding VRRP router IDs.
 
-To discover the VRRP router IDs being used, run the following command:
+To discover the VRRP router IDs being used, run the following command, you can run this command from you laptop:
+
+```shell
+podman run quay.io/openshift/origin-baremetal-runtimecfg:4.5 vr-ids <cluster_name>
+```
+
+If you don't know your cluster name, run this command:
 
 ```shell
 podman run quay.io/openshift/origin-baremetal-runtimecfg:4.5 vr-ids $(oc get cm cluster-config-v1 -n kube-system -o jsonpath='{.data.install-config}'| yq -r .metadata.name)
 ```
 
-The use these [instructions](#Blacklisting-router-IDs) to blacklist those VRRP router IDs.
+Then use these [instructions](#Blacklisting-router-IDs) to blacklist those VRRP router IDs.
 
 ## Verbatim Configurations
 
