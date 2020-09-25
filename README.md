@@ -86,8 +86,26 @@ Additionally, the fields can be edited manually via `oc edit Network.config.open
 
 ## Blacklisting router IDs
 
-If the Keepalived pods are deployed on nodes which are in the same network (same broadcast domain to be precise) with other keepalived the process, it's necessary to ensure that there is no collision between the used routers it. 
+If the Keepalived pods are deployed on nodes which are in the same network (same broadcast domain to be precise) with other keepalived the process, it's necessary to ensure that there is no collision between the used routers it.
 For this purpose it is possible to provide a `blacklistRouterIDs` field with a list of black-listed IDs that will not be used.
+
+## OpenShift RHV, vSphere, OSP and bare metal IPI instructions
+
+When IPI is used for RHV, vSphere, OSP or bare metal platforms, three keepalived VIPs are deployed. To make sure that keepalived-operator can work in these environment we need to discover and blacklist the corresponding VRRP router IDs.
+
+To discover the VRRP router IDs being used, run the following command, you can run this command from you laptop:
+
+```shell
+podman run quay.io/openshift/origin-baremetal-runtimecfg:4.5 vr-ids <cluster_name>
+```
+
+If you don't know your cluster name, run this command:
+
+```shell
+podman run quay.io/openshift/origin-baremetal-runtimecfg:4.5 vr-ids $(oc get cm cluster-config-v1 -n kube-system -o jsonpath='{.data.install-config}'| yq -r .metadata.name)
+```
+
+Then use these [instructions](#Blacklisting-router-IDs) to blacklist those VRRP router IDs.
 
 ## Verbatim Configurations
 

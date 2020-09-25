@@ -88,7 +88,7 @@ docker-push-release:  docker-tag-release
 
 # Build the docker image
 docker-build:
-	go get -u github.com/gen2brain/keepalived_exporter@0.2.0
+	go get -u github.com/gen2brain/keepalived_exporter@0.5.0
 	cp ${GOPATH}/bin/keepalived_exporter ./build/_output/bin
 	go get -u github.com/rjeczalik/cmd/notify@1.0.3
 	cp ${GOPATH}/bin/notify ./build/_output/bin
