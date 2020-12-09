@@ -17,7 +17,8 @@ metadata:
 spec:
   domain: myingress.mydomain
   replicas: 2
-  endpointPublishingStrategy: Private
+  endpointPublishingStrategy: 
+    type: Private
 ```
 
 You can add any other field needed to your configuration, the important thing here is `endpointPublishingStrategy: Private`.
