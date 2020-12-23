@@ -83,6 +83,7 @@ export ALLOWED_CIDR="192.168.131.128/26"
 export AUTOASSIGNED_CIDR="192.168.131.192/26"
 oc patch network cluster -p "$(envsubst < ./network-patch.yaml | yq r -j -)" --type=merge
 ```
+
 Additionally, the fields can be edited manually via `oc edit Network.config.openshift.io cluster`
 
 ## Blacklisting router IDs
@@ -129,7 +130,7 @@ spec:
 
 this will map to the following `global_defs`:
 
-```
+```text
     global_defs {
         router_id keepalivedgroup-router
         vrrp_iptables my-keepalived
@@ -149,7 +150,7 @@ metadata:
 
 this will map to the following `vrrp_instance` section
 
-```
+```text
     vrrp_instance openshift-ingress/router-default {
         interface ens3
         virtual_router_id 1  
@@ -215,7 +216,7 @@ Here are the instructions to install the latest release with Helm.
 oc new-project keepalived-operator
 helm repo add keepalived-operator https://redhat-cop.github.io/keepalived-operator
 helm repo update
-helm install keepalived-operator keepalived-operator/keepalivedoperator
+helm install keepalived-operator keepalived-operator/keepalived-operator
 ```
 
 This can later be updated with the following commands:
