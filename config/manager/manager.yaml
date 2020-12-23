@@ -31,6 +31,11 @@ spec:
         - --leader-elect
         image: controller:latest
         name: manager
+        env:
+        - name: KEEPALIVED_OPERATOR_IMAGE_NAME
+          value: quay.io/redhat-cop/keepalived-operator:latest
+        - name: KEEPALIVEDGROUP_TEMPLATE_FILE_NAME
+          value: /templates/keepalived-template.yaml          
         securityContext:
           allowPrivilegeEscalation: false
         livenessProbe:
