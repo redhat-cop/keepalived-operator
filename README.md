@@ -1,7 +1,6 @@
 # Keepalived operator
 
 ![build status](https://github.com/redhat-cop/keepalived-operator/workflows/push/badge.svg)
-[![Docker Repository on Quay](https://quay.io/repository/redhat-cop/keepalived-operator/status "Docker Repository on Quay")](https://quay.io/repository/redhat-cop/keepalived-operator)
 
 The objective of the keepalived operator is to allow for a way to create self-hosted load balancers in an automated way. From a user experience point of view the behavior is the same as of when creating [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) services with a cloud provider able to manage them.
 
