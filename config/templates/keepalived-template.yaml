@@ -1,0 +1,157 @@
+# expected merge structure
+# .KeepAlivedGroup
+# .Services
+- apiVersion: apps/v1
+  kind: DaemonSet
+  metadata:
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+  spec:
+    selector:
+      matchLabels:
+        keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    template:
+      metadata:
+        labels:
+          keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+      spec:
+        tolerations:
+          - operator: Exists
+        nodeSelector:
+        {{ range $index, $element := .KeepalivedGroup.Spec.NodeSelector }}  
+          {{ $index }}: {{ $element }}
+        {{ end }}  
+        hostNetwork: true
+        automountServiceAccountToken: false
+        enableServiceLinks: false
+        shareProcessNamespace: true
+        containers:
+        - name: keepalived
+          image: {{ .KeepalivedGroup.Spec.Image }}
+          command:
+          - /usr/sbin/keepalived
+          - -l
+          - -D
+          - -n
+          args:
+          - -f
+          - /etc/keepalived.d/keepalived.conf
+          - -p
+          - /etc/keepalived.pid/keepalived.pid
+          volumeMounts:
+          - mountPath: /lib/modules
+            name: lib-modules
+            readOnly: true
+          - mountPath: /etc/keepalived.d
+            name: config
+            readOnly: true
+          - mountPath: /etc/keepalived.pid
+            name: pid
+          - mountPath: /tmp
+            name: stats                               
+          securityContext:
+            privileged: true
+        - name: config-reloader
+          image: {{ .Misc.image }}
+          imagePullPolicy: Always
+          command:
+          - bash
+          - -c
+          - /usr/local/bin/notify.sh
+          env:
+          - name: pid
+            value: /etc/keepalived.pid/keepalived.pid
+          - name: file
+            value: /etc/keepalived.d/keepalived.conf   
+          volumeMounts:
+          - mountPath: /etc/keepalived.d
+            name: config
+            readOnly: true
+          - mountPath: /etc/keepalived.pid
+            name: pid
+          securityContext:
+            runAsUser: 0  
+        - name: prometheus-exporter
+          image: {{ .Misc.image }}
+          imagePullPolicy: Always
+          command:
+          - /usr/local/bin/keepalived_exporter
+          args:
+          - '-web.listen-address'
+          - ':9650'
+          - '-web.telemetry-path'
+          - '/metrics'
+          securityContext:
+            privileged: true
+          ports:
+          - name: metrics
+            containerPort: 9650
+            protocol: TCP  
+          volumeMounts:
+          - mountPath: /lib/modules
+            name: lib-modules
+            readOnly: true
+          - mountPath: /tmp
+            name: stats                                                                                             
+        volumes:
+        - hostPath:
+            path: /lib/modules
+          name: lib-modules
+        - name: config
+          configMap:
+            name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+        - name: pid
+          emptyDir:
+            medium: Memory
+        - name: stats
+          emptyDir: {}                                
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+    labels:
+      keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}    
+  data: 
+    keepalived.conf: |
+      global_defs {
+          router_id {{ .KeepalivedGroup.ObjectMeta.Name }}
+{{ range $key,$value := .KeepalivedGroup.Spec.VerbatimConfig }}
+          {{ $key }} {{ $value }}
+{{ end }}                    
+      }
+  {{ $root:=. }} 
+  {{ $verbatim_key:="keepalived-operator.redhat-cop.io/verbatimconfig"}}   
+  {{ range .Services }}
+      {{ $namespacedName:=printf "%s/%s" .ObjectMeta.Namespace .ObjectMeta.Name }}
+      vrrp_instance {{ $namespacedName }} {
+          interface {{ $root.KeepalivedGroup.Spec.Interface }}
+          
+          virtual_router_id {{ index $root.KeepalivedGroup.Status.RouterIDs $namespacedName }}  
+          
+          virtual_ipaddress {
+            {{ range mergeStringSlices .Status.LoadBalancer.Ingress .Spec.ExternalIPs }}
+            {{ . }}
+            {{ end }}
+          }
+          {{ range $key , $value := (parseJson (index .GetAnnotations $verbatim_key)) }}
+          {{ $key }} {{ $value }}
+          {{ end }}
+      }
+  {{ end }}
+{{ if eq .Misc.supportsPodMonitor "true" }}
+- apiVersion: monitoring.coreos.com/v1
+  kind: PodMonitor
+  metadata:
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+    labels:
+      keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+      metrics: keepalived
+  spec:
+    selector:
+      matchLabels:
+        keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
+    podMetricsEndpoints:
+    - port: metrics
+{{ end}}

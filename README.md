@@ -1,8 +1,6 @@
 # Keepalived operator
 
-[![Build Status](https://travis-ci.org/redhat-cop/keepalived-operator.svg?branch=master)](https://travis-ci.org/redhat-cop/keepalived-operator) [![Docker Repository on Quay](https://quay.io/repository/redhat-cop/keepalived-operator/status "Docker Repository on Quay")](https://quay.io/repository/redhat-cop/keepalived-operator)
-
-#### Please note that this operator is considered third party software by RedHat. This means it is not in scope for official support. If you'd like this to change, please contact RedHat through your customer service representative. 
+![build status](https://github.com/redhat-cop/keepalived-operator/workflows/push/badge.svg)
 
 The objective of the keepalived operator is to allow for a way to create self-hosted load balancers in an automated way. From a user experience point of view the behavior is the same as of when creating [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) services with a cloud provider able to manage them.
 
@@ -84,6 +82,7 @@ export ALLOWED_CIDR="192.168.131.128/26"
 export AUTOASSIGNED_CIDR="192.168.131.192/26"
 oc patch network cluster -p "$(envsubst < ./network-patch.yaml | yq r -j -)" --type=merge
 ```
+
 Additionally, the fields can be edited manually via `oc edit Network.config.openshift.io cluster`
 
 ## Blacklisting router IDs
@@ -130,7 +129,7 @@ spec:
 
 this will map to the following `global_defs`:
 
-```
+```text
     global_defs {
         router_id keepalivedgroup-router
         vrrp_iptables my-keepalived
@@ -150,7 +149,7 @@ metadata:
 
 this will map to the following `vrrp_instance` section
 
-```
+```text
     vrrp_instance openshift-ingress/router-default {
         interface ens3
         virtual_router_id 1  
@@ -177,7 +176,36 @@ When a keepalived group is created a [`PodMonitor`](https://github.com/coreos/pr
 
 This is a cluster-level operator that you can deploy in any namespace, `keepalived-operator` is recommended.
 
-You can either deploy it using [`Helm`](https://helm.sh/) or creating the manifests directly.
+It is recommended to deploy this operator via [`OperatorHub`](https://operatorhub.io/), but you can also deploy it using [`Helm`](https://helm.sh/).
+
+### Deploying from OperatorHub
+
+If you want to utilize the Operator Lifecycle Manager (OLM) to install this operator, you can do so in two ways: from the UI or the CLI.
+
+#### Deploying from OperatorHub UI
+
+* If you would like to launch this operator from the UI, you'll need to navigate to the OperatorHub tab in the console.Before starting, make sure you've created the namespace that you want to install this operator to with the following:
+
+```shell
+oc new-project keepalived-operator
+```
+
+* Once there, you can search for this operator by name: `keepalived`. This will then return an item for our operator and you can select it to get started. Once you've arrived here, you'll be presented with an option to install, which will begin the process.
+* After clicking the install button, you can then select the namespace that you would like to install this to as well as the installation strategy you would like to proceed with (`Automatic` or `Manual`).
+* Once you've made your selection, you can select `Subscribe` and the installation will begin. After a few moments you can go ahead and check your namespace and you should see the operator running.
+
+![Keepalived Operator](./media/keepalived-operator.png)
+
+#### Deploying from OperatorHub using CLI
+
+If you'd like to launch this operator from the command line, you can use the manifests contained in this repository by running the following:
+
+```shell
+oc new-project keepalived-operator
+oc apply -f config/operatorhub -n keepalived-operator
+```
+
+This will create the appropriate OperatorGroup and Subscription and will trigger OLM to launch the operator in the specified namespace.
 
 ### Deploying with Helm
 
@@ -185,62 +213,63 @@ Here are the instructions to install the latest release with Helm.
 
 ```shell
 oc new-project keepalived-operator
-
 helm repo add keepalived-operator https://redhat-cop.github.io/keepalived-operator
 helm repo update
-export keepalived_operator_chart_version=$(helm search repo keepalived-operator/keepalived-operator | grep keepalived-operator/keepalived-operator | awk '{print $2}')
-
-helm fetch keepalived-operator/keepalived-operator --version ${keepalived_operator_chart_version}
-helm template keepalived-operator-${keepalived_operator_chart_version}.tgz --namespace keepalived-operator | oc apply -f - -n keepalived-operator
-
-rm keepalived-operator-${keepalived_operator_chart_version}.tgz
+helm install keepalived-operator keepalived-operator/keepalived-operator
 ```
 
-### Deploying directly with manifests
-
-Here are the instructions to install the latest release creating the manifest directly in OCP.
+This can later be updated with the following commands:
 
 ```shell
-git clone git@github.com:redhat-cop/keepalived-operator.git; cd keepalived-operator
-oc apply -f deploy/crds/redhatcop.redhat.io_keepalivedgroups_crd.yaml
-oc new-project keepalived-operator
-oc -n keepalived-operator apply -f deploy
+helm repo update
+helm upgrade keepalived-operator keepalived-operator/keepalived-operator
 ```
 
-## Local Development
+## Development
 
-Execute the following steps to develop the functionality locally. It is recommended that development be done using a cluster with `cluster-admin` permissions.
-
-```shell
-go mod download
-```
-
-optionally:
+### Running the operator locally
 
 ```shell
-go mod vendor
-```
-
-Using the [operator-sdk](https://github.com/operator-framework/operator-sdk), run the operator locally:
-
-```shell
-export REPOSITORY=quay.io/<your_repo>/keepalived-operator
+make install
+export repo=raffaelespazzoli #replace with yours
+export REPOSITORY=quay.io/${repo}/keepalived-operator
 export KEEPALIVED_OPERATOR_IMAGE_NAME=${REPOSITORY}:latest
-export KEEPALIVEDGROUP_TEMPLATE_FILE_NAME=./build/templates/keepalived-template.yaml
+export KEEPALIVEDGROUP_TEMPLATE_FILE_NAME=./config/templates/keepalived-template.yaml
 docker login $REPOSITORY
-make manager docker-build docker-push-latest
-operator-sdk generate crds --crd-version v1beta1
-oc apply -f deploy/crds/redhatcop.redhat.io_keepalivedgroups_crd.yaml
-oc new-project keepalived-operator
-oc apply -f deploy/service_account.yaml -n keepalived-operator
-oc apply -f deploy/role.yaml -n keepalived-operator
-oc apply -f deploy/role_binding.yaml -n keepalived-operator
-export token=$(oc serviceaccounts get-token 'keepalived-operator' -n keepalived-operator)
-oc login --token=${token}
-OPERATOR_NAME='keepalived-operator' operator-sdk --verbose run  local --watch-namespace "" --operator-flags="--zap-level=debug"
+make docker-build IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
+make docker-push IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
+oc new-project keepalived-operator-local
+kustomize build ./config/local-development | oc apply -f - -n keepalived-operator-local
+export token=$(oc serviceaccounts get-token 'default' -n keepalived-operator-local)
+oc login --token ${token}
+make run ENABLE_WEBHOOKS=false
 ```
 
-## Testing
+### Building/Pushing the operator image
+
+```shell
+export repo=raffaelespazzoli #replace with yours
+docker login quay.io/$repo/keepalived-operator
+make docker-build IMG=quay.io/$repo/keepalived-operator:latest
+make docker-push IMG=quay.io/$repo/keepalived-operator:latest
+```
+
+### Deploy to OLM via bundle
+
+```shell
+make manifests
+make bundle IMG=quay.io/$repo/keepalived-operator:latest
+operator-sdk bundle validate ./bundle --select-optional name=operatorhub
+make bundle-build BUNDLE_IMG=quay.io/$repo/keepalived-operator-bundle:latest
+docker login quay.io/$repo/keepalived-operator-bundle
+podman push quay.io/$repo/keepalived-operator-bundle:latest
+operator-sdk bundle validate quay.io/$repo/keepalived-operator-bundle:latest --select-optional name=operatorhub
+oc new-project keepalived-operator
+operator-sdk cleanup keepalived-operator -n keepalived-operator
+operator-sdk run bundle --install-mode AllNamespaces -n keepalived-operator quay.io/$repo/keepalived-operator-bundle:latest
+```
+
+### Testing
 
 Add an external IP CIDR to your cluster to manage
 
@@ -286,13 +315,31 @@ oc apply -f ./test/keepalivedgroup2.yaml -n test-keepalived-operator
 oc apply -f ./test/test-service-g2.yaml -n test-keepalived-operator
 ```
 
-## Release Process
-
-To release execute the following:
+### Releasing
 
 ```shell
-git tag -a "<version>" -m "release <version>"
-git push upstream <version>
+git tag -a "<tagname>" -m "<commit message>"
+git push upstream <tagname>
 ```
 
-use this version format: vM.m.z
+If you need to remove a release:
+
+```shell
+git tag -d <tagname>
+git push upstream --delete <tagname>
+```
+
+If you need to "move" a release to the current main
+
+```shell
+git tag -f <tagname>
+git push upstream -f <tagname>
+```
+
+### Cleaning up
+
+```shell
+operator-sdk cleanup keepalived-operator -n keepalived-operator
+oc delete operatorgroup operator-sdk-og
+oc delete catalogsource keepalived-operator-catalog
+```
