@@ -11,7 +11,7 @@ metadata:
     description: This operator provides a simple way to create self-hosted load balancers using keepalived.
     repository: https://github.com/redhat-cop/keepalived-operator
     support: Best Effort
-  name: keepalived-operator
+  name: keepalived-operator.v0.0.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
