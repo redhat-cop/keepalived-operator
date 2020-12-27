@@ -214,7 +214,7 @@ jobs:
           chmod +x operator-sdk_linux_amd64
           mkdir ${HOME}/bin
           mv operator-sdk_linux_amd64 ${HOME}/bin/operator-sdk
-        echo "${HOME}/bin" >> $GITHUB_PATH
+          echo "${HOME}/bin" >> $GITHUB_PATH
       - name: Get the version
         id: get_version
         run: |
