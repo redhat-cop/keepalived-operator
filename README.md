@@ -1,6 +1,8 @@
 # Keepalived operator
 
 ![build status](https://github.com/redhat-cop/keepalived-operator/workflows/push/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/redhat-cop/keepalived-operator)](https://goreportcard.com/report/github.com/redhat-cop/keepalived-operator)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/redhat-cop/keepalived-operator)
 
 The objective of the keepalived operator is to allow for a way to create self-hosted load balancers in an automated way. From a user experience point of view the behavior is the same as of when creating [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) services with a cloud provider able to manage them.
 
