@@ -20,8 +20,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -35,12 +37,14 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -52,6 +56,8 @@ const (
 	imageNameEnv                            = "KEEPALIVED_OPERATOR_IMAGE_NAME"
 	keepalivedGroupAnnotation               = "keepalived-operator.redhat-cop.io/keepalivedgroup"
 	keepalivedGroupVerbatimConfigAnnotation = "keepalived-operator.redhat-cop.io/verbatimconfig"
+	keepalivedSpreadVIPsAnnotation          = "keepalived-operator.redhat-cop.io/spreadvips"
+	keepalivedGroupLabel                    = "keepalivedGroup"
 	podMonitorAPIVersion                    = "monitoring.coreos.com/v1"
 	podMonitorKind                          = "PodMonitor"
 )
@@ -94,6 +100,7 @@ func (r *KeepalivedGroupReconciler) setSupportForPodMonitorAvailable() {
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=configmaps/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
 // +kubebuilder:rbac:groups="apps",resources=daemonsets;daemonsets/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="monitoring.coreos.com",resources=podmonitors,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="monitoring.coreos.com",resources=podmonitors/finalizers,verbs=update
@@ -138,6 +145,7 @@ func (r *KeepalivedGroupReconciler) Reconcile(context context.Context, req ctrl.
 		return reconcile.Result{}, nil
 	}
 
+	pods, err := r.getKeepalivedPods(instance)
 	services, err := r.getReferencingServices(instance)
 	if err != nil {
 		log.Error(err, "unable to get referencing services from", "instance", instance)
@@ -148,7 +156,7 @@ func (r *KeepalivedGroupReconciler) Reconcile(context context.Context, req ctrl.
 		log.Error(err, "unable assign router ids to", "instance", instance, "from services", services)
 		return r.ManageError(context, instance, err)
 	}
-	objs, err := r.processTemplate(instance, services)
+	objs, err := r.processTemplate(instance, services, pods)
 	if err != nil {
 		log.Error(err, "unable process keepalived template from", "instance", instance, "and from services", services)
 		return r.ManageError(context, instance, err)
@@ -181,7 +189,7 @@ func (r *KeepalivedGroupReconciler) Reconcile(context context.Context, req ctrl.
 }
 
 func (r *KeepalivedGroupReconciler) assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (bool, error) {
-	assignedServices := []string{}
+	assignedInstances := []string{}
 	assignedIDs := []int{}
 	if len(instance.Spec.BlacklistRouterIDs) > 0 {
 		assignedIDs = append(assignedIDs, instance.Spec.BlacklistRouterIDs...)
@@ -195,16 +203,14 @@ func (r *KeepalivedGroupReconciler) assignRouterIDs(instance *redhatcopv1alpha1.
 		}
 	}
 	for key := range instance.Status.RouterIDs {
-		assignedServices = append(assignedServices, key)
+		assignedInstances = append(assignedInstances, key)
 	}
-	lbServices := []string{}
-	for _, service := range services {
-		lbServices = append(lbServices, apis.GetKeyShort(&service))
-	}
-	assignedServicesSet := strset.New(assignedServices...)
-	lbServicesSet := strset.New(lbServices...)
-	toBeRemovedSet := strset.Difference(assignedServicesSet, lbServicesSet)
-	toBeAddedSet := strset.Difference(lbServicesSet, assignedServicesSet)
+	vrrpInstances := servicesToVRRPInstances(services)
+
+	assignedInstancesSet := strset.New(assignedInstances...)
+	vrrpInstancesSet := strset.New(vrrpInstances...)
+	toBeRemovedSet := strset.Difference(assignedInstancesSet, vrrpInstancesSet)
+	toBeAddedSet := strset.Difference(vrrpInstancesSet, assignedInstancesSet)
 
 	for _, value := range toBeRemovedSet.List() {
 		delete(instance.Status.RouterIDs, value)
@@ -246,7 +252,37 @@ func findNextAvailableID(ids []int) (int, error) {
 	return 0, errors.New("cannot allocate more than 255 ids in one keepalived group")
 }
 
-func (r *KeepalivedGroupReconciler) processTemplate(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (*[]unstructured.Unstructured, error) {
+func servicesToVRRPInstances(services []corev1.Service) []string {
+	vrrpInstances := []string{}
+	for _, service := range services {
+		svcName := apis.GetKeyShort(&service)
+		if ann, ok := service.GetAnnotations()[keepalivedSpreadVIPsAnnotation]; ok && ann == "true" {
+			for _, ingress := range service.Status.LoadBalancer.Ingress {
+				vrrpInstances = append(vrrpInstances, svcName+"/"+ingress.IP)
+			}
+			for _, ip := range service.Spec.ExternalIPs {
+				vrrpInstances = append(vrrpInstances, svcName+"/"+ip)
+			}
+		} else {
+			vrrpInstances = append(vrrpInstances, svcName)
+		}
+	}
+
+	return vrrpInstances
+}
+
+func (r *KeepalivedGroupReconciler) processTemplate(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service, pods []corev1.Pod) (*[]unstructured.Unstructured, error) {
+	// sort services and pods to ensure deterministic template output
+	sort.SliceStable(services, func(i, j int) bool {
+		if services[i].GetNamespace() == services[j].GetNamespace() {
+			return services[i].GetName() < services[j].GetName()
+		}
+		return services[i].GetNamespace() < services[j].GetNamespace()
+	})
+	sort.SliceStable(pods, func(i, j int) bool {
+		return pods[i].GetName() < pods[j].GetName()
+	})
+
 	imagename, ok := os.LookupEnv(imageNameEnv)
 	if !ok {
 		imagename = "quay.io/redhat-cop/keepalived-operator:latest"
@@ -254,10 +290,12 @@ func (r *KeepalivedGroupReconciler) processTemplate(instance *redhatcopv1alpha1.
 	objs, err := util.ProcessTemplateArray(struct {
 		KeepalivedGroup *redhatcopv1alpha1.KeepalivedGroup
 		Services        []corev1.Service
+		KeepalivedPods  []corev1.Pod
 		Misc            map[string]string
 	}{
 		instance,
 		services,
+		pods,
 		map[string]string{
 			"image":              imagename,
 			"supportsPodMonitor": r.supportsPodMonitors,
@@ -268,6 +306,16 @@ func (r *KeepalivedGroupReconciler) processTemplate(instance *redhatcopv1alpha1.
 		return &[]unstructured.Unstructured{}, err
 	}
 	return &objs, nil
+}
+
+func (r *KeepalivedGroupReconciler) getKeepalivedPods(instance *redhatcopv1alpha1.KeepalivedGroup) ([]corev1.Pod, error) {
+	podList := &corev1.PodList{}
+	err := r.GetClient().List(context.TODO(), podList, &client.ListOptions{Namespace: instance.GetNamespace(), LabelSelector: labels.SelectorFromSet(map[string]string{keepalivedGroupLabel: instance.GetName()})})
+	if err != nil {
+		r.Log.Error(err, "unable to get list of keepalived pods")
+		return corev1.PodList{}.Items, err
+	}
+	return podList.Items, nil
 }
 
 func (r *KeepalivedGroupReconciler) getReferencingServices(instance *redhatcopv1alpha1.KeepalivedGroup) ([]corev1.Service, error) {
@@ -336,6 +384,7 @@ func (r *KeepalivedGroupReconciler) initializeTemplate() (*template.Template, er
 			}
 			return strset.Union(strset.New(s1...), strset.New(s2...)).List()
 		},
+		"modulus": func(a, b int) int { return a % b },
 	}).Parse(string(text))
 	if err != nil {
 		r.Log.Error(err, "Error parsing template", "template", string(text))
@@ -411,6 +460,56 @@ func getNamespacedName(namespaced string) (types.NamespacedName, error) {
 	}, nil
 }
 
+// Handler to issue reconciles for KeepalivedGroup resources based on changes on keepalived pods
+func (r *KeepalivedGroupReconciler) requestsForKeepalivedPodChange(obj client.Object) []reconcile.Request {
+	pod, ok := obj.(*corev1.Pod)
+	if !ok {
+		r.Log.Error(fmt.Errorf("expected a Pod, got %T", pod), "could not process pod change")
+		return nil
+	}
+
+	keepalivedGroup, ok := pod.GetLabels()[keepalivedGroupLabel]
+	if !ok {
+		r.Log.Error(fmt.Errorf("could not extract keepalivedGroup from keepalived pod %s in namespace %s", pod.GetName(), pod.GetNamespace()), "could not process pod change")
+		return nil
+	}
+	return []reconcile.Request{{NamespacedName: types.NamespacedName{Namespace: pod.GetNamespace(), Name: keepalivedGroup}}}
+}
+
+// PodChange is a predicate that filters Pod changes to issue KeepalivedGroup reconciles for creation and deletion of keepalived pods
+type PodChange struct {
+	predicate.Funcs
+}
+
+// Update filters out pod updates
+func (PodChange) Update(e event.UpdateEvent) bool {
+	return false
+}
+
+// Create filters out pod creations if they are not keepalived pods
+func (PodChange) Create(e event.CreateEvent) bool {
+	pod, ok := e.Object.(*corev1.Pod)
+	if !ok {
+		return false
+	}
+	if _, ok := pod.GetLabels()[keepalivedGroupLabel]; !ok {
+		return false
+	}
+	return true
+}
+
+// Delete filters out pod deletions if they are not keepalived pods
+func (PodChange) Delete(e event.DeleteEvent) bool {
+	pod, ok := e.Object.(*corev1.Pod)
+	if !ok {
+		return false
+	}
+	if _, ok := pod.GetLabels()[keepalivedGroupLabel]; !ok {
+		return false
+	}
+	return true
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *KeepalivedGroupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.setSupportForPodMonitorAvailable()
@@ -469,5 +568,9 @@ func (r *KeepalivedGroupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		}}, &enqueueRequestForReferredKeepAlivedGroup{
 			Client: mgr.GetClient(),
 		}, builder.WithPredicates(isAnnotatedService)).
+		Watches(&source.Kind{Type: &corev1.Pod{}},
+			handler.EnqueueRequestsFromMapFunc(r.requestsForKeepalivedPodChange),
+			builder.WithPredicates(PodChange{}),
+		).
 		Complete(r)
 }
