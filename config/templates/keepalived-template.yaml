@@ -120,6 +120,19 @@
           {{ $key }} {{ $value }}
 {{ end }}                    
       }
+
+    {{- range $service := .Services }}
+    {{- if eq $service.Spec.ExternalTrafficPolicy "Local" }}
+    {{- $namespacedName := printf "%s/%s" $service.ObjectMeta.Namespace $service.ObjectMeta.Name }}
+      vrrp_script {{ $namespacedName }} {
+        script "/usr/bin/curl --fail --max-time 1 http://127.0.0.1:{{ $service.Spec.HealthCheckNodePort }}/health"
+        timeout 10
+        rise 3
+        fall 3
+      }
+    {{- end }}
+    {{- end }}
+
   {{ $root:=. }} 
   {{ $verbatim_key:="keepalived-operator.redhat-cop.io/verbatimconfig"}}   
   {{ range .Services }}
@@ -134,6 +147,13 @@
             {{ . }}
             {{ end }}
           }
+
+          {{- if eq .Spec.ExternalTrafficPolicy "Local" }}
+          track_script {
+            {{ $namespacedName }}
+          }
+          {{- end }}
+
           {{ range $key , $value := (parseJson (index .GetAnnotations $verbatim_key)) }}
           {{ $key }} {{ $value }}
           {{ end }}
