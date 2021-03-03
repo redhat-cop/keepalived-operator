@@ -92,6 +92,10 @@ Additionally, the fields can be edited manually via `oc edit Network.config.open
 If the Keepalived pods are deployed on nodes which are in the same network (same broadcast domain to be precise) with other keepalived the process, it's necessary to ensure that there is no collision between the used routers it.
 For this purpose it is possible to provide a `blacklistRouterIDs` field with a list of black-listed IDs that will not be used.
 
+## Spreading VIPs across nodes to maximize load balancing
+
+If a service contains multiple externalIPs or LoadBalancer IPs, it is possible to instruct keepalived-operator to maximize the spread of such VIPs across the nodes in the KeepalivedGroup by specifying the `keepalived-operator.redhat-cop.io/spreadvips: "true"` annotation on the service. This option ensures that different VIPs for the same service are always owned by different nodes (or, if the number of nodes in the group is less than the number of VIPs, that the VIPs are assigned maximizing the spread), to avoid creating a traffic bottleneck. However, in order to achieve this, keepalived-operator will create a separate VRRP instance per VIP of that service, which could exhaust the 256 available instances faster.
+
 ## OpenShift RHV, vSphere, OSP and bare metal IPI instructions
 
 When IPI is used for RHV, vSphere, OSP or bare metal platforms, three keepalived VIPs are deployed. To make sure that keepalived-operator can work in these environment we need to discover and blacklist the corresponding VRRP router IDs.

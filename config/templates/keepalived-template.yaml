@@ -29,15 +29,22 @@
         - name: keepalived
           image: {{ .KeepalivedGroup.Spec.Image }}
           command:
-          - /usr/sbin/keepalived
-          - -l
-          - -D
-          - -n
+          - /bin/bash
           args:
-          - -f
-          - /etc/keepalived.d/keepalived.conf
-          - -p
-          - /etc/keepalived.pid/keepalived.pid
+          - -c
+          - >
+            exec /usr/sbin/keepalived
+            --log-console
+            --log-detail
+            --dont-fork
+            --config-id=${POD_NAME}
+            --use-file=/etc/keepalived.d/keepalived.conf
+            --pid=/etc/keepalived.pid/keepalived.pid
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
           volumeMounts:
           - mountPath: /lib/modules
             name: lib-modules
@@ -134,30 +141,61 @@
     {{- end }}
 
   {{ $root:=. }} 
-  {{ $verbatim_key:="keepalived-operator.redhat-cop.io/verbatimconfig"}}   
-  {{ range .Services }}
-      {{ $namespacedName:=printf "%s/%s" .ObjectMeta.Namespace .ObjectMeta.Name }}
+  {{ $verbatim_key:="keepalived-operator.redhat-cop.io/verbatimconfig"}}  
+  {{ $spread_key:="keepalived-operator.redhat-cop.io/spreadvips" }} 
+  {{ range $service := .Services }}
+      {{ $namespacedName:=printf "%s/%s" $service.ObjectMeta.Namespace $service.ObjectMeta.Name }}
+      {{- if eq (index $service.GetAnnotations $spread_key) "true"}}
+      {{- range $i, $ip := (mergeStringSlices $service.Status.LoadBalancer.Ingress $service.Spec.ExternalIPs) }}
+      {{- $namespacedNameForIP := printf "%s/%s" $namespacedName $ip }}
+      {{- $owner := index $root.KeepalivedPods (modulus $i (len $root.KeepalivedPods)) }}
+      vrrp_instance {{ $namespacedNameForIP }} {
+          @{{ $owner.ObjectMeta.Name }} state MASTER
+          @^{{ $owner.ObjectMeta.Name }} state BACKUP
+          @{{ $owner.ObjectMeta.Name }} priority 200
+          @^{{ $owner.ObjectMeta.Name }} priority 100
+          interface {{ $root.KeepalivedGroup.Spec.Interface }}
+          
+          virtual_router_id {{ index $root.KeepalivedGroup.Status.RouterIDs $namespacedNameForIP }}  
+          
+          virtual_ipaddress {
+            {{ $ip }}
+          }
+
+          {{- if eq $service.Spec.ExternalTrafficPolicy "Local" }}
+          track_script {
+            {{ $namespacedName }}
+          }
+          {{- end }}
+
+          {{ range $key , $value := (parseJson (index $service.GetAnnotations $verbatim_key)) }}
+          {{ $key }} {{ $value }}
+          {{ end }}
+      }
+      {{- end }}
+      {{- else }}
       vrrp_instance {{ $namespacedName }} {
           interface {{ $root.KeepalivedGroup.Spec.Interface }}
           
           virtual_router_id {{ index $root.KeepalivedGroup.Status.RouterIDs $namespacedName }}  
           
           virtual_ipaddress {
-            {{ range mergeStringSlices .Status.LoadBalancer.Ingress .Spec.ExternalIPs }}
+            {{ range mergeStringSlices $service.Status.LoadBalancer.Ingress $service.Spec.ExternalIPs }}
             {{ . }}
             {{ end }}
           }
 
-          {{- if eq .Spec.ExternalTrafficPolicy "Local" }}
+          {{- if eq $service.Spec.ExternalTrafficPolicy "Local" }}
           track_script {
             {{ $namespacedName }}
           }
           {{- end }}
 
-          {{ range $key , $value := (parseJson (index .GetAnnotations $verbatim_key)) }}
+          {{ range $key , $value := (parseJson (index $service.GetAnnotations $verbatim_key)) }}
           {{ $key }} {{ $value }}
           {{ end }}
       }
+      {{- end }}
   {{ end }}
 {{ if eq .Misc.supportsPodMonitor "true" }}
 - apiVersion: monitoring.coreos.com/v1
