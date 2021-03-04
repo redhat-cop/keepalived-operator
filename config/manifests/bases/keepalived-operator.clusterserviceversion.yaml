@@ -6,7 +6,7 @@ metadata:
     capabilities: Deep Insights
     categories: Networking, Cloud Provider
     certified: "false"
-    containerImage: quay.io/redhat-cop/keepalived-operator:v0.3.0
+    containerImage: quay.io/redhat-cop/keepalived-operator
     createdAt: 08/25/2020
     description: This operator provides a simple way to create self-hosted load balancers using keepalived.
     repository: https://github.com/redhat-cop/keepalived-operator
