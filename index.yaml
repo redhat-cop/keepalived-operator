@@ -3,9 +3,9 @@ entries:
   keepalived-operator:
   - apiVersion: v1
     appVersion: v1.1.0
-    created: "2021-03-04T00:04:02.039506285Z"
+    created: "2021-03-04T00:35:54.944753718Z"
     description: Helm chart that deploys keepalived-operator
-    digest: 29c354597dfba88847953c554d9317fafd81119d8ba8519d74b97b7684e79190
+    digest: d20f5911a2fef07bc4b16117af28f8aa6ccb6b1231c381c964db228a3cef2b61
     keywords:
     - volume
     - storage
@@ -20,7 +20,7 @@ entries:
     version: v1.1.0
   - apiVersion: v1
     appVersion: v1.0.0
-    created: "2021-03-04T00:04:02.038284069Z"
+    created: "2021-03-04T00:35:54.943845713Z"
     description: Helm chart that deploys keepalived-operator
     digest: 99c9a334cbf980f3b404e234eeba304e3de14680d9632b8636f72e0086772f6d
     keywords:
@@ -37,7 +37,7 @@ entries:
     version: v1.0.0
   - apiVersion: v1
     appVersion: v0.3.0
-    created: "2021-03-04T00:04:02.037934565Z"
+    created: "2021-03-04T00:35:54.943533811Z"
     description: Helm chart that deploys keepalived-operator
     digest: d737ddd7fbf5ce1ad078a2816c0cd22827e6ef3a242d7edf29ba952705199097
     keywords:
@@ -51,7 +51,7 @@ entries:
     version: v0.3.0
   - apiVersion: v1
     appVersion: v0.2.2
-    created: "2021-03-04T00:04:02.037658161Z"
+    created: "2021-03-04T00:35:54.943234309Z"
     description: Helm chart that deploys keepalived-operator
     digest: 33527fb6333182c61266c78c42bd72021f5fb5a331b894c0f67be587914567ac
     keywords:
@@ -65,7 +65,7 @@ entries:
     version: v0.2.2
   - apiVersion: v1
     appVersion: v0.2.0
-    created: "2021-03-04T00:04:02.037340257Z"
+    created: "2021-03-04T00:35:54.942794006Z"
     description: Helm chart that deploys keepalived-operator
     digest: 573ef989f88736beb9d15deb882f9b6c19ba9c945cdc08fda8de9d579b4c9b36
     keywords:
@@ -79,7 +79,7 @@ entries:
     version: v0.2.0
   - apiVersion: v1
     appVersion: 0.2.0
-    created: "2021-03-04T00:04:02.036710749Z"
+    created: "2021-03-04T00:35:54.942284203Z"
     description: Helm chart that deploys keepalived-operator
     digest: 59b00ec8bf18efa4d05138b3841c06f6383a702e13d688bbd6d0f4a8a34e9d9f
     keywords:
@@ -93,7 +93,7 @@ entries:
     version: 0.2.0
   - apiVersion: v1
     appVersion: v0.1.0
-    created: "2021-03-04T00:04:02.037001953Z"
+    created: "2021-03-04T00:35:54.942538305Z"
     description: Helm chart that deploys keepalived-operator
     digest: a12d43c32001ab7d9f7490367f5baa7fe67e723007a102efdc636f3c2254fba9
     keywords:
@@ -105,4 +105,4 @@ entries:
     urls:
     - https://redhat-cop.github.io/keepalived-operator/keepalived-operator/keepalived-operator-v0.1.0.tgz
     version: v0.1.0
-generated: "2021-03-04T00:04:02.036161042Z"
+generated: "2021-03-04T00:35:54.941850001Z"
