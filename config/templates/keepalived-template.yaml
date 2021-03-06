@@ -145,7 +145,7 @@
   {{ $spread_key:="keepalived-operator.redhat-cop.io/spreadvips" }} 
   {{ range $service := .Services }}
       {{ $namespacedName:=printf "%s/%s" $service.ObjectMeta.Namespace $service.ObjectMeta.Name }}
-      {{- if eq (index $service.GetAnnotations $spread_key) "true"}}
+      {{- if and (eq (index $service.GetAnnotations $spread_key) "true") (gt (len $root.KeepalivedPods) 0) }}
       {{- range $i, $ip := (mergeStringSlices $service.Status.LoadBalancer.Ingress $service.Spec.ExternalIPs) }}
       {{- $namespacedNameForIP := printf "%s/%s" $namespacedName $ip }}
       {{- $owner := index $root.KeepalivedPods (modulus $i (len $root.KeepalivedPods)) }}
