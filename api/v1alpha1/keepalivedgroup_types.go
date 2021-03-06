@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -40,6 +41,9 @@ type KeepalivedGroupSpec struct {
 	// +kubebuilder:validation:Required
 	Interface string `json:"interface"`
 
+	// +optional
+	PasswordAuth PasswordAuth `json:"passwordAuth,omitempty"`
+
 	// +kubebuilder:validation:Optional
 	// +mapType=granular
 	VerbatimConfig map[string]string `json:"verbatimConfig,omitempty"`
@@ -48,6 +52,16 @@ type KeepalivedGroupSpec struct {
 	// // +kubebuilder:validation:UniqueItems=true
 	// +listType=set
 	BlacklistRouterIDs []int `json:"blacklistRouterIDs,omitempty"`
+}
+
+// PasswordAuth references a Kubernetes secret to extract the password for VRRP authentication
+type PasswordAuth struct {
+	// +required
+	SecretRef corev1.LocalObjectReference `json:"secretRef"`
+
+	// +optional
+	// +kubebuilder:default:=password
+	SecretKey string `json:"secretKey"`
 }
 
 // KeepalivedGroupStatus defines the observed state of KeepalivedGroup

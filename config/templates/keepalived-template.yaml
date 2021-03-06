@@ -162,6 +162,13 @@
             {{ $ip }}
           }
 
+          {{- if ne $root.Misc.authPass "" }}
+          authentication {
+            auth_type PASS
+            auth_pass {{ $root.Misc.authPass }}
+          }
+          {{- end }}
+
           {{- if eq $service.Spec.ExternalTrafficPolicy "Local" }}
           track_script {
             {{ $namespacedName }}
@@ -184,6 +191,13 @@
             {{ . }}
             {{ end }}
           }
+
+          {{- if ne $root.Misc.authPass "" }}
+          authentication {
+            auth_type PASS
+            auth_pass {{ $root.Misc.authPass }}
+          }
+          {{- end }}
 
           {{- if eq $service.Spec.ExternalTrafficPolicy "Local" }}
           track_script {

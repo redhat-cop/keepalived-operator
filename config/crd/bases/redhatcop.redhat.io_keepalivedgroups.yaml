@@ -53,6 +53,25 @@ spec:
                   type: string
                 type: object
                 x-kubernetes-map-type: granular
+              passwordAuth:
+                description: PasswordAuth references a Kubernetes secret to extract
+                  the password for VRRP authentication
+                properties:
+                  secretKey:
+                    default: password
+                    type: string
+                  secretRef:
+                    description: LocalObjectReference contains enough information
+                      to let you locate the referenced object inside the same namespace.
+                    properties:
+                      name:
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          TODO: Add other useful fields. apiVersion, kind, uid?'
+                        type: string
+                    type: object
+                required:
+                - secretRef
+                type: object
               verbatimConfig:
                 additionalProperties:
                   type: string
