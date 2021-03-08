@@ -153,12 +153,15 @@ func (r *KeepalivedGroupReconciler) Reconcile(context context.Context, req ctrl.
 		err := r.GetClient().Get(context, types.NamespacedName{Namespace: instance.GetNamespace(), Name: instance.Spec.PasswordAuth.SecretRef.Name}, secret)
 		if err != nil {
 			// Requeue and log error
-			return reconcile.Result{}, err
+			log.Error(err, "could not find passwordAuth secret", "instance", instance)
+			return r.ManageError(context, instance, err)
 		}
 		pass, ok := secret.Data[instance.Spec.PasswordAuth.SecretKey]
 		if !ok {
 			// Requeue and log error
-			return reconcile.Result{}, fmt.Errorf("could not find key %s in secret %s in namespace %s", instance.Spec.PasswordAuth.SecretKey, instance.Spec.PasswordAuth.SecretRef.Name, instance.GetNamespace())
+			err = fmt.Errorf("could not find key %s in secret %s in namespace %s", instance.Spec.PasswordAuth.SecretKey, instance.Spec.PasswordAuth.SecretRef.Name, instance.GetNamespace())
+			log.Error(err, "could not find referenced key in passwordAuth secret", "instance", instance)
+			return r.ManageError(context, instance, err)
 		}
 		authPass = string(pass)
 	}
