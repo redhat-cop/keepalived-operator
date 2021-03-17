@@ -22,9 +22,9 @@ spec:
 ```
 
 You can add any other field needed to your configuration, the important thing here is `endpointPublishingStrategy: Private`.
-This will create a set of pods in teh openshift-ingress namespace with prefix: `router-my-keepalived-ingress`.
+This will create a set of pods in the openshift-ingress namespace with prefix: `router-my-keepalived-ingress`.
 
-Create a load balancer service to server these pods:
+Create a load balancer service to serve these pods:
 
 ```yaml
 kind: Service
@@ -49,7 +49,7 @@ spec:
   type: LoadBalancer
 ```
 
-At this point the keepalievd operator will provision a VIP and the routers are reachable there.
+At this point the keepalievd operator will provision a VIP and the routers will be reachable there.
 
 If you need to control which IP the router needs to be serve on, use an external IPs:
 
@@ -78,6 +78,6 @@ spec:
   type: ClusterIP
 ```
 
-At this point the only missing ingredient is to make sure that the DNS routes requests to `*.myingress.mydomain` are directed to the IP that was provisioned by the keepalived-operator or that was selected via the external IP.
+At this point the only missing ingredient are to make sure that the DNS routes requests to `*.myingress.mydomain` are directed to the IP that was provisioned by the keepalived-operator or that was selected via the external IP.
 
 If you are using the [external-dns](https://github.com/kubernetes-sigs/external-dns) operator, you can easily automate this step by adding the following annotation to the service: `external-dns.alpha.kubernetes.io/hostname: *.myingress.mydomain`.
