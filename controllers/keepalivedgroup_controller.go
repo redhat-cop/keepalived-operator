@@ -101,6 +101,7 @@ func (r *KeepalivedGroupReconciler) setSupportForPodMonitorAvailable() {
 // +kubebuilder:rbac:groups="",resources=configmaps/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups="apps",resources=daemonsets;daemonsets/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="monitoring.coreos.com",resources=podmonitors,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="monitoring.coreos.com",resources=podmonitors/finalizers,verbs=update
@@ -145,6 +146,26 @@ func (r *KeepalivedGroupReconciler) Reconcile(context context.Context, req ctrl.
 		return reconcile.Result{}, nil
 	}
 
+	// Check if VRRP authentication is needed and if so extract credentials
+	authPass := ""
+	if instance.Spec.PasswordAuth.SecretRef.Name != "" {
+		secret := &corev1.Secret{}
+		err := r.GetClient().Get(context, types.NamespacedName{Namespace: instance.GetNamespace(), Name: instance.Spec.PasswordAuth.SecretRef.Name}, secret)
+		if err != nil {
+			// Requeue and log error
+			log.Error(err, "could not find passwordAuth secret", "instance", instance)
+			return r.ManageError(context, instance, err)
+		}
+		pass, ok := secret.Data[instance.Spec.PasswordAuth.SecretKey]
+		if !ok {
+			// Requeue and log error
+			err = fmt.Errorf("could not find key %s in secret %s in namespace %s", instance.Spec.PasswordAuth.SecretKey, instance.Spec.PasswordAuth.SecretRef.Name, instance.GetNamespace())
+			log.Error(err, "could not find referenced key in passwordAuth secret", "instance", instance)
+			return r.ManageError(context, instance, err)
+		}
+		authPass = string(pass)
+	}
+
 	pods, err := r.getKeepalivedPods(instance)
 	services, err := r.getReferencingServices(instance)
 	if err != nil {
@@ -156,7 +177,7 @@ func (r *KeepalivedGroupReconciler) Reconcile(context context.Context, req ctrl.
 		log.Error(err, "unable assign router ids to", "instance", instance, "from services", services)
 		return r.ManageError(context, instance, err)
 	}
-	objs, err := r.processTemplate(instance, services, pods)
+	objs, err := r.processTemplate(instance, services, pods, authPass)
 	if err != nil {
 		log.Error(err, "unable process keepalived template from", "instance", instance, "and from services", services)
 		return r.ManageError(context, instance, err)
@@ -271,7 +292,7 @@ func servicesToVRRPInstances(services []corev1.Service) []string {
 	return vrrpInstances
 }
 
-func (r *KeepalivedGroupReconciler) processTemplate(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service, pods []corev1.Pod) (*[]unstructured.Unstructured, error) {
+func (r *KeepalivedGroupReconciler) processTemplate(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service, pods []corev1.Pod, authPass string) (*[]unstructured.Unstructured, error) {
 	// sort services and pods to ensure deterministic template output
 	sort.SliceStable(services, func(i, j int) bool {
 		if services[i].GetNamespace() == services[j].GetNamespace() {
@@ -299,6 +320,7 @@ func (r *KeepalivedGroupReconciler) processTemplate(instance *redhatcopv1alpha1.
 		map[string]string{
 			"image":              imagename,
 			"supportsPodMonitor": r.supportsPodMonitors,
+			"authPass":           authPass,
 		},
 	}, r.keepalivedTemplate)
 	if err != nil {
