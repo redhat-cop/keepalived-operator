@@ -251,6 +251,29 @@ oc login --token ${token}
 make run ENABLE_WEBHOOKS=false
 ```
 
+### Test helm chart locally
+
+Define an image and tag. For example...
+
+```shell
+export imageRepository="quay.io/redhat-cop/keepalived-operator"
+export imageTag="v1.2.1"
+```
+
+Deploy chart...
+
+```shell
+make helmchart IMG=${imageRepository} VERSION=${imageTag}
+helm upgrade -i keepalived-operator-local charts/keepalived-operator -n keepalived-operator-local --create-namespace
+```
+
+Delete...
+
+```shell
+helm delete keepalived-operator-local -n keepalived-operator-local
+kubectl delete -f charts/keepalived-operator/crds/crds.yaml
+```
+
 ### Building/Pushing the operator image
 
 ```shell

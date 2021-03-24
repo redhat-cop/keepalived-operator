@@ -22,12 +22,11 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "keepalived-operator.serviceAccountName" . }}    
       containers:
       - command:
         - /manager
         args:
-        - -leader-elect
+        - --leader-elect
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: {{ .Chart.Name }}
