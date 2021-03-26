@@ -5,13 +5,10 @@
 ## $create_config_only is set to true to launch the script in one-shot mode (no notification loop)
 
 function set_up_configs {
-  IFACE=""
+  cp $file $dst_file
+
   if [ -n "$reachip" ]; then
     IFACE=$(ip route get $reachip | awk "/$reachip/{ print \$3 }")
-  fi
-
-  cp $file $dst_file
-  if [ -n "$IFACE" ]; then
     sed -i "s/interface.*$/interface $IFACE/g" $dst_file
     echo "autodicovered local interface that can reach $reachip to be $IFACE"
   fi
