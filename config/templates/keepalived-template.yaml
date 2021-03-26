@@ -44,7 +44,7 @@
           {{- else }}
             value: ""
           {{- end }}
-          - name: setup
+          - name: create_config_only
             value: "true"
           volumeMounts:
           - mountPath: /etc/keepalived.d/src
@@ -107,7 +107,7 @@
           {{- else }}
             value: ""
           {{- end }}
-          - name: setup
+          - name: create_config_only
             value: "false"
           volumeMounts:
           - mountPath: /etc/keepalived.d/src
