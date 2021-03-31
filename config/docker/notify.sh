@@ -8,7 +8,7 @@ function set_up_configs {
   cp $file $dst_file
 
   if [ -n "$reachip" ]; then
-    IFACE=$(ip route get $reachip | awk "/$reachip/{ print \$3 }")
+    IFACE=$(ip route get $reachip | grep -Po '(?<=(dev )).*(?= src| proto)')
     sed -i "s/interface.*$/interface $IFACE/g" $dst_file
     echo "autodicovered local interface that can reach $reachip to be $IFACE"
   fi
