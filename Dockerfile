@@ -30,7 +30,7 @@ COPY --from=builder /workspace/notify /usr/local/bin
 COPY --from=builder /workspace/keepalived_exporter /usr/local/bin
 COPY config/templates /templates
 COPY config/docker /usr/local/bin
-RUN yum -y install --disableplugin=subscription-manager kmod sed grep net-tools && yum clean all
+RUN yum -y install --disableplugin=subscription-manager kmod iproute && yum clean all
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]
