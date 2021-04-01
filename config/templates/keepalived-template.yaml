@@ -25,6 +25,35 @@
         automountServiceAccountToken: false
         enableServiceLinks: false
         shareProcessNamespace: true
+        initContainers:
+        - name: config-setup
+          image: {{ .Misc.image }}
+          imagePullPolicy: Always
+          command:
+          - bash
+          - -c
+          - /usr/local/bin/notify.sh
+          env:
+          - name: file
+            value: /etc/keepalived.d/src/keepalived.conf   
+          - name: dst_file
+            value: /etc/keepalived.d/dst/keepalived.conf
+          - name: reachip
+          {{- if .KeepalivedGroup.Spec.InterfaceFromIP }}
+            value: {{ .KeepalivedGroup.Spec.InterfaceFromIP }}
+          {{- else }}
+            value: ""
+          {{- end }}
+          - name: create_config_only
+            value: "true"
+          volumeMounts:
+          - mountPath: /etc/keepalived.d/src
+            name: config
+            readOnly: true
+          - mountPath: /etc/keepalived.d/dst
+            name: config-dst
+          securityContext:
+            runAsUser: 0            
         containers:
         - name: keepalived
           image: {{ .KeepalivedGroup.Spec.Image }}
@@ -50,7 +79,7 @@
             name: lib-modules
             readOnly: true
           - mountPath: /etc/keepalived.d
-            name: config
+            name: config-dst
             readOnly: true
           - mountPath: /etc/keepalived.pid
             name: pid
@@ -69,11 +98,23 @@
           - name: pid
             value: /etc/keepalived.pid/keepalived.pid
           - name: file
-            value: /etc/keepalived.d/keepalived.conf   
+            value: /etc/keepalived.d/src/keepalived.conf   
+          - name: dst_file
+            value: /etc/keepalived.d/dst/keepalived.conf
+          - name: reachip
+          {{- if .KeepalivedGroup.Spec.InterfaceFromIP }}
+            value: {{ .KeepalivedGroup.Spec.InterfaceFromIP }}
+          {{- else }}
+            value: ""
+          {{- end }}
+          - name: create_config_only
+            value: "false"
           volumeMounts:
-          - mountPath: /etc/keepalived.d
+          - mountPath: /etc/keepalived.d/src
             name: config
             readOnly: true
+          - mountPath: /etc/keepalived.d/dst
+            name: config-dst
           - mountPath: /etc/keepalived.pid
             name: pid
           securityContext:
@@ -107,6 +148,8 @@
         - name: config
           configMap:
             name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+        - name: config-dst
+          emptyDir: {}
         - name: pid
           emptyDir:
             medium: Memory

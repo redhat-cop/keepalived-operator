@@ -48,6 +48,9 @@ spec:
                 type: string
               interface:
                 type: string
+              interfaceFromIP:
+                format: ipv4
+                type: string
               nodeSelector:
                 additionalProperties:
                   type: string

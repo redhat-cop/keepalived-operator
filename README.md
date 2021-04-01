@@ -39,7 +39,7 @@ spec:
   - 2  
 ```
 
-This KeepalivedGroup will be deployed on all the nodes with role `loadbalancer`. One must also specify the network device on which the VIPs will be exposed, it is assumed that all the nodes have the same network device configuration.
+This KeepalivedGroup will be deployed on all the nodes with role `loadbalancer`. Keepalived requires knowledge of the network device on which the VIPs will be exposed. If the interface name is the same on all nodes, it can be specified in the `interface` field. Alternatively, the `interfaceFromIP` field can be set to an IPv4 address to enable interface autodiscovery. In this scenario, the `interface` field will be ignored and each node in the KeepalivedGroup will expose the VIPs on the interface that would be used to reach the provided IP.
 
 Services must be annotated to opt-in to being observed by the keepalived operator and to specify which KeepalivedGroup they refer to. The annotation looks like this:
 

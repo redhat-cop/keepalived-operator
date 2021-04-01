@@ -42,6 +42,10 @@ type KeepalivedGroupSpec struct {
 	Interface string `json:"interface"`
 
 	// +optional
+	// +kubebuilder:validation:Format=ipv4
+	InterfaceFromIP string `json:"interfaceFromIP"`
+
+	// +optional
 	PasswordAuth PasswordAuth `json:"passwordAuth,omitempty"`
 
 	// +kubebuilder:validation:Optional
