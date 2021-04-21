@@ -9,6 +9,7 @@ metadata:
     containerImage: quay.io/redhat-cop/keepalived-operator
     createdAt: 08/25/2020
     description: This operator provides a simple way to create self-hosted load balancers using keepalived.
+    operatorframework.io/suggested-namespace: keepalived-operator
     repository: https://github.com/redhat-cop/keepalived-operator
     support: Best Effort
   name: keepalived-operator.v0.0.0

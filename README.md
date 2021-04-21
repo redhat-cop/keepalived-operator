@@ -51,10 +51,10 @@ The image used for the keepalived containers can be specified with `.Spec.Image`
 
 ### Security Context Constraints
 
-Each KeepalivedGroup deploys a [daemonset](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that requires the [privileged scc](https://docs.openshift.com/container-platform/4.5/authentication/managing-security-context-constraints.html), this permission must be given to the `default` service account in the namespace where the keepalived group is created by and administrator.
+Each KeepalivedGroup deploys a [daemonset](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that requires the [privileged scc](https://docs.openshift.com/container-platform/4.5/authentication/managing-security-context-constraints.html), this permission must be given to the `keepalived-operator-controller-manager` service account in the namespace where the keepalived group is created by and administrator.
 
 ```shell
-oc adm policy add-scc-to-user privileged -z default -n keepalived-operator
+oc adm policy add-scc-to-user privileged -z keepalived-operator-controller-manager -n keepalived-operator
 ```
 
 ### Cluster Network Operator
@@ -246,7 +246,7 @@ make docker-build IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
 make docker-push IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
 oc new-project keepalived-operator-local
 kustomize build ./config/local-development | oc apply -f - -n keepalived-operator-local
-export token=$(oc serviceaccounts get-token 'default' -n keepalived-operator-local)
+export token=$(oc serviceaccounts get-token 'keepalived-operator-controller-manager' -n keepalived-operator-local)
 oc login --token ${token}
 make run ENABLE_WEBHOOKS=false
 ```
@@ -257,7 +257,7 @@ Define an image and tag. For example...
 
 ```shell
 export imageRepository="quay.io/redhat-cop/keepalived-operator"
-export imageTag="v1.2.1"
+export imageTag="$(git describe --tags --abbrev=0)" # grabs the most recent git tag, which should match the image tag
 ```
 
 Deploy chart...
@@ -320,7 +320,7 @@ export SERVICE_IP=$(oc get svc django-psql-example -n test-keepalived-operator -
 create a keepalivedgroup
 
 ```shell
-oc adm policy add-scc-to-user privileged -z default -n test-keepalived-operator
+oc adm policy add-scc-to-user privileged -z keepalived-operator-controller-manager -n test-keepalived-operator
 oc apply -f ./test/keepalivedgroup.yaml -n test-keepalived-operator
 ```
 
