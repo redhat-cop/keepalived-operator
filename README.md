@@ -51,10 +51,10 @@ The image used for the keepalived containers can be specified with `.Spec.Image`
 
 ### Security Context Constraints
 
-Each KeepalivedGroup deploys a [daemonset](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that requires the [privileged scc](https://docs.openshift.com/container-platform/4.5/authentication/managing-security-context-constraints.html), this permission must be given to the `keepalived-operator-controller-manager` service account in the namespace where the keepalived group is created by and administrator.
+Each KeepalivedGroup deploys a [daemonset](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that requires the [privileged scc](https://docs.openshift.com/container-platform/4.5/authentication/managing-security-context-constraints.html), this permission must be given to the `default` service account in the namespace where the keepalived group is created by and administrator.
 
 ```shell
-oc adm policy add-scc-to-user privileged -z keepalived-operator-controller-manager -n keepalived-operator
+oc adm policy add-scc-to-user privileged -z default-n <keepalivedgroup namespace>
 ```
 
 ### Cluster Network Operator
@@ -178,6 +178,12 @@ When a keepalived group is created a [`PodMonitor`](https://github.com/coreos/pr
       metrics: keepalived
 ```
 
+In order to enable the collection of these metrics by the platform prometheus you have to appropriately label the namespace in which the `KeepalivedGroup` CR was created:
+
+```shell
+oc label namespace <keepalived-group namespace> openshift.io/cluster-monitoring="true"
+```
+
 ## Deploying the Operator
 
 This is a cluster-level operator that you can deploy in any namespace, `keepalived-operator` is recommended.
@@ -231,6 +237,14 @@ helm repo update
 helm upgrade keepalived-operator keepalived-operator/keepalived-operator
 ```
 
+## Metrics
+
+Prometheus compatible metrics are exposed by the Operator and can be integrated into OpenShift's default cluster monitoring. To enable OpenShift cluster monitoring, label the namespace the operator is deployed in with the label `openshift.io/cluster-monitoring="true"`.
+
+```shell
+oc label namespace <namespace> openshift.io/cluster-monitoring="true"
+```
+
 ## Development
 
 ### Running the operator locally
@@ -246,7 +260,7 @@ make docker-build IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
 make docker-push IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
 oc new-project keepalived-operator-local
 kustomize build ./config/local-development | oc apply -f - -n keepalived-operator-local
-export token=$(oc serviceaccounts get-token 'keepalived-operator-controller-manager' -n keepalived-operator-local)
+export token=$(oc serviceaccounts get-token 'keepalived-controller-manager' -n keepalived-operator-local)
 oc login --token ${token}
 make run ENABLE_WEBHOOKS=false
 ```
@@ -291,9 +305,10 @@ make bundle IMG=quay.io/$repo/keepalived-operator:latest
 operator-sdk bundle validate ./bundle --select-optional name=operatorhub
 make bundle-build BUNDLE_IMG=quay.io/$repo/keepalived-operator-bundle:latest
 docker login quay.io/$repo/keepalived-operator-bundle
-podman push quay.io/$repo/keepalived-operator-bundle:latest
+docker push quay.io/$repo/keepalived-operator-bundle:latest
 operator-sdk bundle validate quay.io/$repo/keepalived-operator-bundle:latest --select-optional name=operatorhub
 oc new-project keepalived-operator
+oc label namespace keepalived-operator openshift.io/cluster-monitoring="true"
 operator-sdk cleanup keepalived-operator -n keepalived-operator
 operator-sdk run bundle --install-mode AllNamespaces -n keepalived-operator quay.io/$repo/keepalived-operator-bundle:latest
 ```
@@ -320,7 +335,7 @@ export SERVICE_IP=$(oc get svc django-psql-example -n test-keepalived-operator -
 create a keepalivedgroup
 
 ```shell
-oc adm policy add-scc-to-user privileged -z keepalived-operator-controller-manager -n test-keepalived-operator
+oc adm policy add-scc-to-user privileged -z default -n test-keepalived-operator
 oc apply -f ./test/keepalivedgroup.yaml -n test-keepalived-operator
 ```
 
@@ -342,6 +357,15 @@ test with a second keepalived group
 oc apply -f ./test/test-servicemultiple.yaml -n test-keepalived-operator
 oc apply -f ./test/keepalivedgroup2.yaml -n test-keepalived-operator
 oc apply -f ./test/test-service-g2.yaml -n test-keepalived-operator
+```
+
+#### Testing metrics
+
+```sh
+export operatorNamespace=keepalived-operator-local # or keepalived-operator
+oc label namespace ${operatorNamespace} openshift.io/cluster-monitoring="true"
+oc rsh -n openshift-monitoring -c prometheus prometheus-k8s-0 /bin/bash
+curl -v -s -k -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" https://keepalived-operator-controller-manager-metrics.${operatorNamespace}.svc.cluster.local:8443/metrics
 ```
 
 ### Releasing
