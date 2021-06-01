@@ -269,4 +269,31 @@
         keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
     podMetricsEndpoints:
     - port: metrics
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}-prometheus-k8s
+  rules:
+    - apiGroups:
+        - ""
+      resources:
+        - endpoints
+        - pods
+        - services
+      verbs:
+        - get
+        - list
+        - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}-prometheus-k8s
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: {{ .KeepalivedGroup.ObjectMeta.Name }}-prometheus-k8s
+  subjects:
+    - kind: ServiceAccount
+      name: prometheus-k8s
+      namespace: openshift-monitoring        
 {{ end}}
