@@ -99,13 +99,12 @@ func (r *KeepalivedGroupReconciler) setSupportForPodMonitorAvailable() {
 // +kubebuilder:rbac:groups=redhatcop.redhat.io,resources=keepalivedgroups/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=configmaps/finalizers,verbs=update
-// +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch
-// +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
-// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=services;endpoints;pods;secrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups="apps",resources=daemonsets;daemonsets/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="monitoring.coreos.com",resources=podmonitors,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="monitoring.coreos.com",resources=podmonitors/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;patch
+// +kubebuilder:rbac:groups="rbac.authorization.k8s.io",resources=roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

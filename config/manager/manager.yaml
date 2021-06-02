@@ -3,6 +3,7 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
+    openshift.io/cluster-monitoring: "true"
   name: system
 ---
 apiVersion: apps/v1
@@ -11,16 +12,16 @@ metadata:
   name: controller-manager
   namespace: system
   labels:
-    control-plane: controller-manager
+    operator: keepalived-operator
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      operator: keepalived-operator
   replicas: 1
   template:
     metadata:
       labels:
-        control-plane: controller-manager
+        operator: keepalived-operator
     spec:
       serviceAccountName: controller-manager
       containers:
