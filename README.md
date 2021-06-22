@@ -271,7 +271,7 @@ Define an image and tag. For example...
 
 ```shell
 export imageRepository="quay.io/redhat-cop/keepalived-operator"
-export imageTag="$(git describe --tags --abbrev=0)" # grabs the most recent git tag, which should match the image tag
+export imageTag="$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/redhat-cop/keepalived-operator.git '*.*.*' | tail --lines=1 | cut --delimiter='/' --fields=3)"
 ```
 
 Deploy chart...
@@ -365,7 +365,9 @@ oc apply -f ./test/test-service-g2.yaml -n test-keepalived-operator
 export operatorNamespace=keepalived-operator-local # or keepalived-operator
 oc label namespace ${operatorNamespace} openshift.io/cluster-monitoring="true"
 oc rsh -n openshift-monitoring -c prometheus prometheus-k8s-0 /bin/bash
+export operatorNamespace=keepalived-operator-local # or keepalived-operator
 curl -v -s -k -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" https://keepalived-operator-controller-manager-metrics.${operatorNamespace}.svc.cluster.local:8443/metrics
+exit
 ```
 
 ### Releasing
