@@ -9,6 +9,8 @@ resources:
     crdVersion: v1
     namespaced: true
   group: redhat-cop
+  domain: redhat.io
+  controller: true
   kind: KeepalivedGroup
   version: v1alpha1
   path: github.com/redhat-cop/keepalived-operator/api/v1alpha1
