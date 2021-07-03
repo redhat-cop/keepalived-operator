@@ -1,8 +1,17 @@
 domain: redhat.io
-layout: go.kubebuilder.io/v3
+layout: 
+- go.kubebuilder.io/v3
 projectName: keepalived-operator
 repo: github.com/redhat-cop/keepalived-operator
 version: "3"
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  group: redhat-cop
+  kind: KeepalivedGroup
+  version: v1alpha1
+  path: github.com/redhat-cop/keepalived-operator/api/v1alpha1
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
