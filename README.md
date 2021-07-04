@@ -245,6 +245,17 @@ Prometheus compatible metrics are exposed by the Operator and can be integrated 
 oc label namespace <namespace> openshift.io/cluster-monitoring="true"
 ```
 
+### Testing metrics
+
+```sh
+export operatorNamespace=keepalived-operator-local # or keepalived-operator
+oc label namespace ${operatorNamespace} openshift.io/cluster-monitoring="true"
+oc rsh -n openshift-monitoring -c prometheus prometheus-k8s-0 /bin/bash
+export operatorNamespace=keepalived-operator-local # or keepalived-operator
+curl -v -s -k -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" https://keepalived-operator-controller-manager-metrics.${operatorNamespace}.svc.cluster.local:8443/metrics
+exit
+```
+
 ## Development
 
 ### Running the operator locally
@@ -260,7 +271,7 @@ make docker-build IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
 make docker-push IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
 oc new-project keepalived-operator-local
 kustomize build ./config/local-development | oc apply -f - -n keepalived-operator-local
-export token=$(oc serviceaccounts get-token 'keepalived-controller-manager' -n keepalived-operator-local)
+export token=$(oc serviceaccounts get-token 'keepalived-operator-controller-manager' -n keepalived-operator-local)
 oc login --token ${token}
 make run ENABLE_WEBHOOKS=false
 ```
@@ -357,17 +368,6 @@ test with a second keepalived group
 oc apply -f ./test/test-servicemultiple.yaml -n test-keepalived-operator
 oc apply -f ./test/keepalivedgroup2.yaml -n test-keepalived-operator
 oc apply -f ./test/test-service-g2.yaml -n test-keepalived-operator
-```
-
-#### Testing metrics
-
-```sh
-export operatorNamespace=keepalived-operator-local # or keepalived-operator
-oc label namespace ${operatorNamespace} openshift.io/cluster-monitoring="true"
-oc rsh -n openshift-monitoring -c prometheus prometheus-k8s-0 /bin/bash
-export operatorNamespace=keepalived-operator-local # or keepalived-operator
-curl -v -s -k -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" https://keepalived-operator-controller-manager-metrics.${operatorNamespace}.svc.cluster.local:8443/metrics
-exit
 ```
 
 ### Releasing

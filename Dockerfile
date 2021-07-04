@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.15 as builder
+FROM golang:1.16 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -15,7 +15,7 @@ COPY api/ api/
 COPY controllers/ controllers/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
+RUN  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
 RUN go get -u github.com/gen2brain/keepalived_exporter@0.5.0 && \
     cp ${GOPATH}/bin/keepalived_exporter ./
 RUN go get -u github.com/rjeczalik/cmd/notify@1.0.3 && \

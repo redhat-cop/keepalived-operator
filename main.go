@@ -81,7 +81,7 @@ func main() {
 	}
 
 	keepalivedGroupReconciler := &controllers.KeepalivedGroupReconciler{
-		ReconcilerBase: util.NewReconcilerBase(mgr.GetClient(), mgr.GetScheme(), mgr.GetConfig(), mgr.GetEventRecorderFor("keepalived-controller")),
+		ReconcilerBase: util.NewReconcilerBase(mgr.GetClient(), mgr.GetScheme(), mgr.GetConfig(), mgr.GetEventRecorderFor("keepalived-controller"), mgr.GetAPIReader()),
 		Log:            ctrl.Log.WithName("controllers").WithName("KeepalivedGroup"),
 	}
 
