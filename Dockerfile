@@ -15,7 +15,7 @@ COPY api/ api/
 COPY controllers/ controllers/
 
 # Build
-RUN  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
+RUN  CGO_ENABLED=0 GOOS=linux go build -a -o manager main.go
 RUN go get -u github.com/gen2brain/keepalived_exporter@0.5.0 && \
     cp ${GOPATH}/bin/keepalived_exporter ./
 RUN go get -u github.com/rjeczalik/cmd/notify@1.0.3 && \
