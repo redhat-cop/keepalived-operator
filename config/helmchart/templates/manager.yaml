@@ -56,7 +56,7 @@ spec:
         name: {{ .Chart.Name }}
         env:
         - name: KEEPALIVED_OPERATOR_IMAGE_NAME
-          value: quay.io/redhat-cop/keepalived-operator:latest
+          value: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         - name: KEEPALIVEDGROUP_TEMPLATE_FILE_NAME
           value: /templates/keepalived-template.yaml 
         resources:
