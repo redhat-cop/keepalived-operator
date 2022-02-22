@@ -1,6 +1,6 @@
 # Ingress How To
 
-This document explains who to configure the OpenShift ingress controller to take advantage of the keepalived-operator.
+This document explains how to configure the OpenShift ingress controller to take advantage of the keepalived-operator.
 
 ## Ingress configuration
 
