@@ -54,7 +54,7 @@ The image used for the keepalived containers can be specified with `.Spec.Image`
 Each KeepalivedGroup deploys a [daemonset](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that requires the [privileged scc](https://docs.openshift.com/container-platform/4.5/authentication/managing-security-context-constraints.html), this permission must be given to the `default` service account in the namespace where the keepalived group is created by and administrator.
 
 ```shell
-oc adm policy add-scc-to-user privileged -z default-n <keepalivedgroup namespace>
+oc adm policy add-scc-to-user privileged -z default -n <keepalivedgroup namespace>
 ```
 
 ### Cluster Network Operator
