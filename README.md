@@ -166,6 +166,34 @@ this will map to the following `vrrp_instance` section
     }
 ```
 
+## Override Keepalived Configuration Template
+
+Create a ConfigMap with the configuration from this template file:
+https://github.com/redhat-cop/keepalived-operator/blob/29402297ca8a252be77904c3f3c29b08e50a3b85/config/templates/keepalived-template.yaml#L166
+
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+name: keepalived-template
+namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+labels:
+  keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}    
+data: 
+keepalived.conf: |
+  ...
+  global_defs {
+      router_id {{ .KeepalivedGroup.ObjectMeta.Name }}
+{{ range $key,$value := .KeepalivedGroup.Spec.VerbatimConfig }}
+      {{ $key }} {{ $value }}
+{{ end }}                    
+  }
+  ...
+```
+  
+Then in the Helm Chart set `keepalivedTemplateFromConfigMap: keepalived-template`
+
+
 ## Metrics collection
 
 Each keepalived pod exposes a [Prometheus](https://prometheus.io/) metrics port at `9650`. Metrics are collected with [keepalived_exporter](github.com/gen2brain/keepalived_exporter), the available metrics are described in the project documentation.
