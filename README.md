@@ -193,6 +193,8 @@ keepalived.conf: |
   
 Then in the Helm Chart set `keepalivedTemplateFromConfigMap: keepalived-template`
 
+This will override the `/templates/keepalived-template.yaml` config file in the keepalived-operator pod which will allow you to update the configs without having to rebuild/push the operator docker image.
+
 
 ## Metrics collection
 
