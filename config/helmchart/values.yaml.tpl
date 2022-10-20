@@ -38,4 +38,4 @@ kube_rbac_proxy:
       memory: 20Mi
 
 enableMonitoring: true 
-keepalivedTemplateFromConfigMap: keepalived-template
+keepalivedTemplateFromConfigMap: "" #i.e. keepalived-template
