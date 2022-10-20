@@ -205,6 +205,16 @@
             {{ $ip }}
           }
 
+          {{- if eq $root.KeepalivedGroup.Spec.UnicastEnabled true }}
+          unicast_peer {
+            {{ range $pod := $root.KeepalivedPods }}
+            {{- if $pod.Status.HostIP }}
+            {{ $pod.Status.HostIP }}
+            {{- end -}}
+            {{ end }}
+          }
+          {{- end -}}
+
           {{- if ne $root.Misc.authPass "" }}
           authentication {
             auth_type PASS
@@ -234,6 +244,16 @@
             {{ . }}
             {{ end }}
           }
+
+          {{- if eq $root.KeepalivedGroup.Spec.UnicastEnabled true }}
+          unicast_peer {
+            {{ range $pod := $root.KeepalivedPods }}
+            {{- if $pod.Status.HostIP }}
+            {{ $pod.Status.HostIP }}
+            {{- end -}}
+            {{ end }}
+          }
+          {{- end -}}
 
           {{- if ne $root.Misc.authPass "" }}
           authentication {

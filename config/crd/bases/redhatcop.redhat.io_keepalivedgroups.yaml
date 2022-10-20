@@ -75,6 +75,8 @@ spec:
                 required:
                 - secretRef
                 type: object
+              unicastEnabled:
+                type: boolean
               verbatimConfig:
                 additionalProperties:
                   type: string
