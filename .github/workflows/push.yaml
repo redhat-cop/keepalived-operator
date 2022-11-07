@@ -18,5 +18,6 @@ jobs:
     with:
       PR_ACTOR: "raffaele.spazzoli@gmail.com"
       RUN_UNIT_TESTS: true
-      RUN_INTEGRATION_TESTS: false
+      RUN_INTEGRATION_TESTS: true
       RUN_HELMCHART_TEST: true
+      GO_VERSION: "1.18"
