@@ -67,13 +67,12 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                     scheme,
-		MetricsBindAddress:         metricsAddr,
-		Port:                       9443,
-		HealthProbeBindAddress:     probeAddr,
-		LeaderElection:             enableLeaderElection,
-		LeaderElectionID:           "03846a46.redhat.io",
-		LeaderElectionResourceLock: "configmaps",
+		Scheme:                 scheme,
+		MetricsBindAddress:     metricsAddr,
+		Port:                   9443,
+		HealthProbeBindAddress: probeAddr,
+		LeaderElection:         enableLeaderElection,
+		LeaderElectionID:       "03846a46.redhat.io",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

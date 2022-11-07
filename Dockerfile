@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.16 as builder
+FROM golang:1.18 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -16,9 +16,9 @@ COPY controllers/ controllers/
 
 # Build
 RUN  CGO_ENABLED=0 GOOS=linux go build -a -o manager main.go
-RUN go get -u github.com/gen2brain/keepalived_exporter@0.5.0 && \
+RUN go install github.com/gen2brain/keepalived_exporter@0.5.0 && \
     cp ${GOPATH}/bin/keepalived_exporter ./
-RUN go get -u github.com/rjeczalik/cmd/notify@1.0.3 && \
+RUN go install github.com/rjeczalik/cmd/notify@1.0.3 && \
     cp ${GOPATH}/bin/notify ./
 
 # Use distroless as minimal base image to package the manager binary

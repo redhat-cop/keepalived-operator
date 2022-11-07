@@ -271,20 +271,14 @@ exit
 
 ### Running the operator locally
 
+> Note: this operator build process is tested with [podman](https://podman.io/), but some of the build files (Makefile specifically) use docker because they are generated automatically by operator-sdk. It is recommended [remap the docker command to the podman command](https://developers.redhat.com/blog/2020/11/19/transitioning-from-docker-to-podman#transition_to_the_podman_cli).
+
 ```shell
-make install
-export repo=raffaelespazzoli #replace with yours
-export REPOSITORY=quay.io/${repo}/keepalived-operator
-export KEEPALIVED_OPERATOR_IMAGE_NAME=${REPOSITORY}:latest
-export KEEPALIVEDGROUP_TEMPLATE_FILE_NAME=./config/templates/keepalived-template.yaml
-docker login $REPOSITORY
-make docker-build IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
-make docker-push IMG=${KEEPALIVED_OPERATOR_IMAGE_NAME}
-oc new-project keepalived-operator-local
-kustomize build ./config/local-development | oc apply -f - -n keepalived-operator-local
-export token=$(oc serviceaccounts get-token 'keepalived-operator-controller-manager' -n keepalived-operator-local)
-oc login --token ${token}
-make run ENABLE_WEBHOOKS=false
+export repo=raffaelespazzoli
+docker login quay.io/$repo
+oc new-project keepalived-operator
+oc project keepalived-operator
+tilt up
 ```
 
 ### Test helm chart locally
@@ -330,9 +324,15 @@ docker login quay.io/$repo/keepalived-operator-bundle
 docker push quay.io/$repo/keepalived-operator-bundle:latest
 operator-sdk bundle validate quay.io/$repo/keepalived-operator-bundle:latest --select-optional name=operatorhub
 oc new-project keepalived-operator
-oc label namespace keepalived-operator openshift.io/cluster-monitoring="true"
+oc label namespace keepalived-operator openshift.io/cluster-monitoring="true" --overwrite
 operator-sdk cleanup keepalived-operator -n keepalived-operator
 operator-sdk run bundle --install-mode AllNamespaces -n keepalived-operator quay.io/$repo/keepalived-operator-bundle:latest
+```
+
+## Integration Test
+
+```sh
+make helmchart-test
 ```
 
 ### Testing

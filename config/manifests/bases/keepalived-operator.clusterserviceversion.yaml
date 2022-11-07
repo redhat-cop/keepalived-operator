@@ -11,16 +11,16 @@ metadata:
     description: This operator provides a simple way to create self-hosted load balancers
       using keepalived.
     operatorframework.io/suggested-namespace: keepalived-operator
+    operators.openshift.io/infrastructure-features: '["Disconnected"]'
     repository: https://github.com/redhat-cop/keepalived-operator
     support: Best Effort
-    operators.openshift.io/infrastructure-features: '["Disconnected"]'
-  name: keepalived-operator.v0.0.0
-  namespace: placeholder
   labels:
-    operatorframework.io/os.linux: supported
     operatorframework.io/arch.amd64: supported
     operatorframework.io/arch.arm64: supported
-    operatorframework.io/arch.ppc64le: supported  
+    operatorframework.io/arch.ppc64le: supported
+    operatorframework.io/os.linux: supported
+  name: keepalived-operator.v0.0.0
+  namespace: placeholder
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions: {}
