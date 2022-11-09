@@ -8,7 +8,7 @@ RUN go install github.com/gen2brain/keepalived_exporter@0.5.0 && \
 RUN go install github.com/rjeczalik/cmd/notify@1.0.3 && \
     cp ${GOPATH}/bin/notify ./
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi8/ubi
 WORKDIR /
 COPY --from=builder /workspace/notify /usr/local/bin
 COPY --from=builder /workspace/keepalived_exporter /usr/local/bin
