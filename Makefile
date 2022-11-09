@@ -180,7 +180,7 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	rm $(KUSTOMIZE)
+	rm $(KUSTOMIZE) || true
 	curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN)
 
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
