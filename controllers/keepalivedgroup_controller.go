@@ -31,6 +31,7 @@ import (
 	redhatcopv1alpha1 "github.com/redhat-cop/keepalived-operator/api/v1alpha1"
 	"github.com/redhat-cop/operator-utils/pkg/util"
 	"github.com/redhat-cop/operator-utils/pkg/util/apis"
+	"github.com/redhat-cop/operator-utils/pkg/util/templates"
 	"github.com/scylladb/go-set/iset"
 	"github.com/scylladb/go-set/strset"
 	corev1 "k8s.io/api/core/v1"
@@ -176,7 +177,7 @@ func (r *KeepalivedGroupReconciler) Reconcile(context context.Context, req ctrl.
 		log.Error(err, "unable assign router ids to", "instance", instance, "from services", services)
 		return r.ManageError(context, instance, err)
 	}
-	objs, err := r.processTemplate(instance, services, pods, authPass)
+	objs, err := r.processTemplate(context, instance, services, pods, authPass)
 	if err != nil {
 		log.Error(err, "unable process keepalived template from", "instance", instance, "and from services", services)
 		return r.ManageError(context, instance, err)
@@ -291,7 +292,7 @@ func servicesToVRRPInstances(services []corev1.Service) []string {
 	return vrrpInstances
 }
 
-func (r *KeepalivedGroupReconciler) processTemplate(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service, pods []corev1.Pod, authPass string) (*[]unstructured.Unstructured, error) {
+func (r *KeepalivedGroupReconciler) processTemplate(ctx context.Context, instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service, pods []corev1.Pod, authPass string) (*[]unstructured.Unstructured, error) {
 	// sort services and pods to ensure deterministic template output
 	sort.SliceStable(services, func(i, j int) bool {
 		if services[i].GetNamespace() == services[j].GetNamespace() {
@@ -307,7 +308,7 @@ func (r *KeepalivedGroupReconciler) processTemplate(instance *redhatcopv1alpha1.
 	if !ok {
 		imagename = "quay.io/redhat-cop/keepalived-operator:latest"
 	}
-	objs, err := util.ProcessTemplateArray(struct {
+	objs, err := templates.ProcessTemplateArray(ctx, struct {
 		KeepalivedGroup *redhatcopv1alpha1.KeepalivedGroup
 		Services        []corev1.Service
 		KeepalivedPods  []corev1.Pod

@@ -56,6 +56,10 @@ type KeepalivedGroupSpec struct {
 	// // +kubebuilder:validation:UniqueItems=true
 	// +listType=set
 	BlacklistRouterIDs []int `json:"blacklistRouterIDs,omitempty"`
+
+	// +optional
+	UnicastEnabled bool `json:"unicastEnabled,omitempty"`
+
 }
 
 // PasswordAuth references a Kubernetes secret to extract the password for VRRP authentication

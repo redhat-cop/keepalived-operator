@@ -13,7 +13,11 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-env: []
+env: 
+- name: KEEPALIVED_OPERATOR_IMAGE_NAME
+  value: quay.io/redhat-cop/keepalived-operator:latest
+- name: KEEPALIVEDGROUP_TEMPLATE_FILE_NAME
+  value: /templates/keepalived-template.yaml 
 podAnnotations: {}
 
 resources:
