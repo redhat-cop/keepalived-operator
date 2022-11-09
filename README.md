@@ -166,9 +166,9 @@ this will map to the following `vrrp_instance` section
     }
 ```
 
-## Override Keepalived Configuration Template
+## Advanced Users Only: Override Keepalived Configuration Template
 
-Create a ConfigMap with the configuration from this template file:
+Create a ConfigMap with the full contents of this configuration template file:
 https://github.com/redhat-cop/keepalived-operator/blob/29402297ca8a252be77904c3f3c29b08e50a3b85/config/templates/keepalived-template.yaml#L166
 
 ```
@@ -181,14 +181,17 @@ labels:
   keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}    
 data: 
 keepalived.conf: |
-  ...
-  global_defs {
-      router_id {{ .KeepalivedGroup.ObjectMeta.Name }}
-{{ range $key,$value := .KeepalivedGroup.Spec.VerbatimConfig }}
-      {{ $key }} {{ $value }}
-{{ end }}                    
-  }
-  ...
+    ...
+    # expected merge structure
+    # .KeepAlivedGroup
+    # .Services
+    - apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+        namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+      spec:
+    ...
 ```
   
 Then in the Helm Chart set `keepalivedTemplateFromConfigMap: keepalived-template`
