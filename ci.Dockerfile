@@ -10,7 +10,6 @@ RUN go install github.com/rjeczalik/cmd/notify@1.0.3 && \
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 WORKDIR /
-COPY --from=builder /workspace/manager .
 COPY --from=builder /workspace/notify /usr/local/bin
 COPY --from=builder /workspace/keepalived_exporter /usr/local/bin
 COPY bin/manager .
