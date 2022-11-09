@@ -13,12 +13,12 @@ spec:
   template:
     metadata:
     {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
+    annotations:
+      {{- toYaml . | nindent 8 }}
     {{- end }}
-      labels:
-        {{- include "keepalived-operator.selectorLabels" . | nindent 8 }}
-        operator: keepalived-operator
+    labels:
+      {{- include "keepalived-operator.selectorLabels" . | nindent 8 }}
+      operator: keepalived-operator
     spec:
       serviceAccountName: controller-manager
       {{- with .Values.imagePullSecrets }}
@@ -26,78 +26,74 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - args:
-        - --secure-listen-address=0.0.0.0:8443
-        - --upstream=http://127.0.0.1:8080/
-        - --logtostderr=true
-        - --tls-cert-file=/etc/certs/tls/tls.crt
-        - --tls-private-key-file=/etc/certs/tls/tls.key
-        - --v=0
-        image: "{{ .Values.kube_rbac_proxy.image.repository }}:{{ .Values.kube_rbac_proxy.image.tag }}"
-        name: kube-rbac-proxy
-        ports:
-        - containerPort: 8443
-          name: https
-        volumeMounts:
-        - mountPath: /etc/certs/tls
-          name: keepalived-operator-certs
-{{ - if .Values.keepalivedTemplateFromConfigMap }}
-        - mountPath: /templates/
-          name: {{ .Values.keepalivedTemplateFromConfigMap }}
-{{ - end }}
-        imagePullPolicy: {{ .Values.kube_rbac_proxy.image.pullPolicy }}
-        {{- with .Values.env }}
-        env:
-         {{- toYaml . | nindent 8 }}
-        {{- end }}         
-        resources:
-          {{- toYaml .Values.kube_rbac_proxy.resources | nindent 10 }}
-      - command:
-        - /manager
-        args:
-        - --leader-elect
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        {{- with .Values.env }}
-        env:
-         {{- toYaml . | nindent 8 }}
-        {{- end }}
-        name: {{ .Chart.Name }}
-        resources:
-          {{- toYaml .Values.resources | nindent 10 }}
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      volumes:
-      - name: keepalived-operator-certs
-        secret:
-          defaultMode: 420
-          secretName: keepalived-operator-certs
-{{- if .Values.keepalivedTemplateFromConfigMap }}
-      - configMap:
-          defaultMode: 420
-          name: {{ .Values.keepalivedTemplateFromConfigMap }}
-        name: {{ .Values.keepalivedTemplateFromConfigMap }}
-{{- end }}
+        - args:
+            - --secure-listen-address=0.0.0.0:8443
+            - --upstream=http://127.0.0.1:8080/
+            - --logtostderr=true
+            - --tls-cert-file=/etc/certs/tls/tls.crt
+            - --tls-private-key-file=/etc/certs/tls/tls.key
+            - --v=0
+          image: "{{ .Values.kube_rbac_proxy.image.repository }}:{{ .Values.kube_rbac_proxy.image.tag }}"
+          name: kube-rbac-proxy
+          ports:
+            - containerPort: 8443
+              name: https
+          volumeMounts:
+            - mountPath: /etc/certs/tls
+              name: keepalived-operator-certs
+          imagePullPolicy: {{ .Values.kube_rbac_proxy.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.kube_rbac_proxy.resources | nindent 10 }}
+        - command:
+            - /manager
+          args:
+            - --leader-elect
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.env }}
+          env:
+            {{- toYaml . | nindent 8 }}
+  {{ - if .Values.keepalivedTemplateFromConfigMap }}
+- mountPath: /templates/
+  name: {{ .Values.keepalivedTemplateFromConfigMap }}
+  {{ - end }}
+  {{- end }}
+name: {{ .Chart.Name }}
+resources:
+  {{- toYaml .Values.resources | nindent 10 }}
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8081
+  initialDelaySeconds: 15
+  periodSeconds: 20
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 8081
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  {{- with .Values.nodeSelector }}
+nodeSelector:
+  {{- toYaml . | nindent 8 }}
+  {{- end }}
+  {{- with .Values.affinity }}
+affinity:
+  {{- toYaml . | nindent 8 }}
+  {{- end }}
+  {{- with .Values.tolerations }}
+tolerations:
+  {{- toYaml . | nindent 8 }}
+  {{- end }}
+volumes:
+  - name: keepalived-operator-certs
+    secret:
+      defaultMode: 420
+      secretName: keepalived-operator-certs
+  {{- if .Values.keepalivedTemplateFromConfigMap }}
+- configMap:
+    defaultMode: 420
+    name: {{ .Values.keepalivedTemplateFromConfigMap }}
+  name: {{ .Values.keepalivedTemplateFromConfigMap }}
+  {{- end }}
 
