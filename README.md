@@ -169,7 +169,7 @@ this will map to the following `vrrp_instance` section
 ## Advanced Users Only: Override Keepalived Configuration Template
 
 Create a ConfigMap with the full contents of this configuration template file:
-https://github.com/redhat-cop/keepalived-operator/blob/29402297ca8a252be77904c3f3c29b08e50a3b85/config/templates/keepalived-template.yaml#L166
+https://github.com/redhat-cop/keepalived-operator/blob/master/config/templates/keepalived-template.yaml
 
 ```
 apiVersion: v1
