@@ -22,7 +22,7 @@ if [ "$create_config_only" = "true" ]; then
   exit 0
 fi
 
-HASH=$(md5sum $(readlink -f $file))
+HASH=""
 
 while true; do
    NEW_HASH=$(md5sum $(readlink -f $file))

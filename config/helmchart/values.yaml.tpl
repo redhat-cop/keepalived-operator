@@ -13,11 +13,13 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-env: 
+env:
 - name: KEEPALIVED_OPERATOR_IMAGE_NAME
   value: quay.io/redhat-cop/keepalived-operator:latest
 - name: KEEPALIVEDGROUP_TEMPLATE_FILE_NAME
-  value: /templates/keepalived-template.yaml 
+  value: /templates/keepalived-template.yaml
+keepalivedTemplateFromConfigMap: "" #i.e. "keepalived-template" of an existing ConfigMap
+
 podAnnotations: {}
 
 resources:
@@ -41,4 +43,4 @@ kube_rbac_proxy:
       cpu: 100m
       memory: 20Mi
 
-enableMonitoring: true 
+enableMonitoring: true
