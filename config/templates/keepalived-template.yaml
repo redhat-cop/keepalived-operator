@@ -12,6 +12,9 @@
         keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
     template:
       metadata:
+        annotations:
+          container.apparmor.security.beta.kubernetes.io/config-reloader: unconfined
+          container.apparmor.security.beta.kubernetes.io/keepalived: unconfined
         labels:
           keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
       spec:
