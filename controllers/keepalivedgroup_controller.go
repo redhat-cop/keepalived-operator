@@ -26,6 +26,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/go-logr/logr"
 	redhatcopv1alpha1 "github.com/redhat-cop/keepalived-operator/api/v1alpha1"
@@ -205,6 +206,7 @@ func (r *KeepalivedGroupReconciler) Reconcile(context context.Context, req ctrl.
 			log.Error(err, "unable to create or update resource", "resource", obj)
 			return r.ManageError(context, instance, err)
 		}
+		time.Sleep(1 * time.Second)
 	}
 	return r.ManageSuccess(context, instance)
 }
