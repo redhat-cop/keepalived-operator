@@ -12,10 +12,9 @@
         keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
     template:
       metadata:
-        {{ if .KeepalivedGroup.Spec.DisableAppArmor }}
         annotations:
-          container.apparmor.security.beta.kubernetes.io/config-reloader: unconfined
-          container.apparmor.security.beta.kubernetes.io/keepalived: unconfined
+        {{ range $index, $element := .KeepalivedGroup.Spec.DaemonsetAnnotations }}
+          {{ $index }}: {{ $element }}
         {{ end }}
         labels:
           keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}

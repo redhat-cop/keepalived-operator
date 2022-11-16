@@ -60,8 +60,9 @@ type KeepalivedGroupSpec struct {
 	// +optional
 	UnicastEnabled bool `json:"unicastEnabled,omitempty"`
 
-	// +optional
-	DisableAppArmor bool `json:"disableAppArmor,omitempty"`
+	// +kubebuilder:validation:Optional
+	// +mapType=granular
+	DaemonsetAnnotations map[string]string `json:"daemonsetAnnotations,omitempty"`
 }
 
 // PasswordAuth references a Kubernetes secret to extract the password for VRRP authentication
