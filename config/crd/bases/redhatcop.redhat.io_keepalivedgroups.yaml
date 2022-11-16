@@ -41,6 +41,8 @@ spec:
                   type: integer
                 type: array
                 x-kubernetes-list-type: set
+              disableAppArmor:
+                type: boolean
               image:
                 default: registry.redhat.io/openshift4/ose-keepalived-ipfailover
                 description: //+kubebuilder:validation:Optional
