@@ -62,7 +62,7 @@ type KeepalivedGroupSpec struct {
 
 	// +kubebuilder:validation:Optional
 	// +mapType=granular
-	DaemonsetAnnotations map[string]string `json:"daemonsetAnnotations,omitempty"`
+	DaemonsetPodAnnotations map[string]string `json:"daemonsetPodAnnotations,omitempty"`
 }
 
 // PasswordAuth references a Kubernetes secret to extract the password for VRRP authentication

@@ -13,7 +13,7 @@
     template:
       metadata:
         annotations:
-        {{ range $index, $element := .KeepalivedGroup.Spec.DaemonsetAnnotations }}
+        {{ range $index, $element := .KeepalivedGroup.Spec.DaemonsetPodAnnotations }}
           {{ $index }}: {{ $element }}
         {{ end }}
         labels:

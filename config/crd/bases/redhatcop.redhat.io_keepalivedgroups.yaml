@@ -41,7 +41,7 @@ spec:
                   type: integer
                 type: array
                 x-kubernetes-list-type: set
-              daemonsetAnnotations:
+              daemonsetPodAnnotations:
                 additionalProperties:
                   type: string
                 type: object
