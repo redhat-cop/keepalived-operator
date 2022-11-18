@@ -12,6 +12,12 @@
         keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
     template:
       metadata:
+      {{- with .KeepalivedGroup.Spec.DaemonsetAnnotations }}
+        annotations:
+        {{ range $index, $element := . }}
+          {{ $index }}: {{ $element }}
+        {{ end }}
+      {{- end }}
         labels:
           keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
       spec:
