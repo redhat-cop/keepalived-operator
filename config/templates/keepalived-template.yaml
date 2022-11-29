@@ -12,7 +12,7 @@
         keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
     template:
       metadata:
-      {{- with .KeepalivedGroup.Spec.DaemonsetAnnotations }}
+      {{- with .KeepalivedGroup.Spec.DaemonsetPodAnnotations }}
         annotations:
         {{ range $index, $element := . }}
           {{ $index }}: {{ $element }}
