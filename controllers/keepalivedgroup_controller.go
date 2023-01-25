@@ -58,6 +58,7 @@ const (
 	keepalivedGroupAnnotation               = "keepalived-operator.redhat-cop.io/keepalivedgroup"
 	keepalivedGroupVerbatimConfigAnnotation = "keepalived-operator.redhat-cop.io/verbatimconfig"
 	keepalivedSpreadVIPsAnnotation          = "keepalived-operator.redhat-cop.io/spreadvips"
+	keepalivedUpdateServiceStatus           = "keepalived-operator.redhat-cop.io/updateservicestatus"
 	keepalivedGroupLabel                    = "keepalivedGroup"
 	podMonitorAPIVersion                    = "monitoring.coreos.com/v1"
 	podMonitorKind                          = "PodMonitor"
@@ -206,7 +207,47 @@ func (r *KeepalivedGroupReconciler) Reconcile(context context.Context, req ctrl.
 			return r.ManageError(context, instance, err)
 		}
 	}
+	_, err = r.setServiceStatus(context, instance, services)
+	if err != nil {
+		log.Error(err, "failed to update service status", "services", services)
+		return r.ManageError(context, instance, err)
+	}
 	return r.ManageSuccess(context, instance)
+}
+
+func (r *KeepalivedGroupReconciler) setServiceStatus(context context.Context, instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (result bool, err error) {
+	for _, service := range services {
+		// ExternalIPs could be manual or automatically assigned:
+		// https://docs.openshift.com/container-platform/4.12/networking/configuring_ingress_cluster_traffic/configuring-externalip.html
+		// Allocation of IPs to LoabBalancer status:
+		// https://github.com/openshift/route-controller-manager/blob/main/pkg/route/ingressip/service_ingressip_controller.go#L491
+		// Setting externalIPs after LoabBalancer status:
+		// https://github.com/openshift/route-controller-manager/blob/main/pkg/route/ingressip/service_ingressip_controller.go#L520
+		// Settings ExternalIPs and LoadBalancer Status are not atomic, so cannot determine if LoadBalanacer status needs to be updated
+		// Therefore need annotation to determine this
+		if ann, ok := service.GetAnnotations()[keepalivedUpdateServiceStatus]; ok && ann == "true" {
+			doUpdate := false
+			if len(service.Spec.ExternalIPs) > 0 {
+				//TODO: sync multiple IPs from ExternalIPs to LoadBalancer status
+				if len(service.Status.LoadBalancer.Ingress) == 0 {
+					doUpdate = true
+					service.Status.LoadBalancer.Ingress = append(service.Status.LoadBalancer.Ingress, corev1.LoadBalancerIngress{IP: service.Spec.ExternalIPs[0]})
+				} else if service.Status.LoadBalancer.Ingress[0].IP != service.Spec.ExternalIPs[0] {
+					doUpdate = true
+					service.Status.LoadBalancer.Ingress[0].IP = service.Spec.ExternalIPs[0]
+				}
+			}
+			if doUpdate {
+				err = r.GetClient().Status().Update(context, &service)
+				if err != nil {
+					return
+				}
+			}
+		}
+	}
+
+	result = true
+	return
 }
 
 func (r *KeepalivedGroupReconciler) assignRouterIDs(instance *redhatcopv1alpha1.KeepalivedGroup, services []corev1.Service) (bool, error) {
