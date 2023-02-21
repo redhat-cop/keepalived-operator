@@ -41,13 +41,13 @@ spec:
                   type: integer
                 type: array
                 x-kubernetes-list-type: set
-              daemonsetPodPriorityClassName:
-                type: string
               daemonsetPodAnnotations:
                 additionalProperties:
                   type: string
                 type: object
                 x-kubernetes-map-type: granular
+              daemonsetPodPriorityClassName:
+                type: string
               image:
                 default: registry.redhat.io/openshift4/ose-keepalived-ipfailover
                 description: //+kubebuilder:validation:Optional
