@@ -41,6 +41,8 @@ spec:
                   type: integer
                 type: array
                 x-kubernetes-list-type: set
+              daemonsetPodPriorityClassName:
+                type: string
               daemonsetPodAnnotations:
                 additionalProperties:
                   type: string
