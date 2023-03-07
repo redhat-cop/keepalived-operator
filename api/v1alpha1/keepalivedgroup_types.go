@@ -60,6 +60,9 @@ type KeepalivedGroupSpec struct {
 	// +optional
 	UnicastEnabled bool `json:"unicastEnabled,omitempty"`
 
+	// +optional
+	DaemonsetPodPriorityClassName string `json:"daemonsetPodPriorityClassName"`
+
 	// +kubebuilder:validation:Optional
 	// +mapType=granular
 	DaemonsetPodAnnotations map[string]string `json:"daemonsetPodAnnotations,omitempty"`

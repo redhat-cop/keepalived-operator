@@ -21,6 +21,9 @@
         labels:
           keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}
       spec:
+        {{- if .KeepalivedGroup.Spec.DaemonsetPodPriorityClassName }}
+        priorityClassName: {{ .KeepalivedGroup.Spec.DaemonsetPodPriorityClassName }}
+        {{- end }}
         tolerations:
           - operator: Exists
         nodeSelector:
