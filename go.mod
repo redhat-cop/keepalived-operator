@@ -3,7 +3,7 @@ module github.com/redhat-cop/keepalived-operator
 go 1.19
 
 require (
-	github.com/go-logr/logr v1.2.0
+	github.com/go-logr/logr v1.4.1
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	github.com/redhat-cop/operator-utils v1.3.4
