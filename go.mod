@@ -6,7 +6,7 @@ require (
 	github.com/go-logr/logr v1.2.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
-	github.com/redhat-cop/operator-utils v1.3.4
+	github.com/redhat-cop/operator-utils/v2 v2.0.0
 	github.com/scylladb/go-set v1.0.2
 	k8s.io/api v0.24.2
 	k8s.io/apimachinery v0.24.2
