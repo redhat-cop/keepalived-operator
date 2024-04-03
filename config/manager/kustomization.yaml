@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/raffaelespazzoli/keepalived-operator
-  newTag: latest
+  newTag: latest@sha256:111529f93552866682ddb4c8ee43ad0f6371d220c8537a4b5e9e8a764aaf37fc
