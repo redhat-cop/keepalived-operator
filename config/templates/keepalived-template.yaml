@@ -55,6 +55,13 @@
           {{- end }}
           - name: create_config_only
             value: "true"
+          resources:
+            limits:
+              cpu: 150m
+              memory: 64Mi
+            requests:
+              cpu: 50m
+              memory: 32Mi
           volumeMounts:
           - mountPath: /etc/keepalived.d/src
             name: config
@@ -83,6 +90,13 @@
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
+          resources:
+            limits:
+              cpu: 350m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
           volumeMounts:
           - mountPath: /lib/modules
             name: lib-modules
@@ -118,6 +132,13 @@
           {{- end }}
           - name: create_config_only
             value: "false"
+          resources:
+            limits:
+              cpu: 150m
+              memory: 64Mi
+            requests:
+              cpu: 50m
+              memory: 32Mi
           volumeMounts:
           - mountPath: /etc/keepalived.d/src
             name: config
@@ -144,6 +165,13 @@
           - name: metrics
             containerPort: 9650
             protocol: TCP  
+          resources:
+            limits:
+              cpu: 150m
+              memory: 64Mi
+            requests:
+              cpu: 50m
+              memory: 32Mi
           volumeMounts:
           - mountPath: /lib/modules
             name: lib-modules
