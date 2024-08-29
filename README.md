@@ -182,21 +182,19 @@ kind: ConfigMap
 metadata:
 name: keepalived-template
 namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
-labels:
-  keepalivedGroup: {{ .KeepalivedGroup.ObjectMeta.Name }}    
 data: 
-keepalived.conf: |
-    ...
-    # expected merge structure
-    # .KeepAlivedGroup
-    # .Services
-    - apiVersion: apps/v1
-      kind: DaemonSet
-      metadata:
-        name: {{ .KeepalivedGroup.ObjectMeta.Name }}
-        namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
-      spec:
-    ...
+  keepalived-template.yaml: |
+      ...
+      # expected merge structure
+      # .KeepAlivedGroup
+      # .Services
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        metadata:
+          name: {{ .KeepalivedGroup.ObjectMeta.Name }}
+          namespace: {{ .KeepalivedGroup.ObjectMeta.Namespace }}
+        spec:
+      ...
 ```
   
 Then in the Helm Chart set `keepalivedTemplateFromConfigMap: keepalived-template`
