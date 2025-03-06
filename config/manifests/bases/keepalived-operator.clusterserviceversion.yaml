@@ -50,7 +50,7 @@ spec:
     has been introduced. This CRD is supposed to be configured by an administrator
     and allows you to specify a node selector to pick on which nodes the keepalived
     pods should be deployed. Here is an example:\n\n```yaml\napiVersion: redhatcop.redhat.io/v1alpha1\nkind:
-    KeepalivedGroup\nmetadata:\n  name: keepalivedgroup-router\nspec:\n  image: registry.redhat.io/openshift4/ose-keepalived-ipfailover\n
+    KeepalivedGroup\nmetadata:\n  name: keepalivedgroup-router\nspec:\n  image: registry.redhat.io/openshift4/ose-keepalived-ipfailover-rhel9\n
     \ interface: ens3\n  nodeSelector:\n    node-role.kubernetes.io/loadbalancer:
     \"\"\n  blacklistRouterIDs:\n  - 1\n  - 2  \n```\n\nThis KeepalivedGroup will
     be deployed on all the nodes with role `loadbalancer`. One must also specify the
@@ -59,7 +59,7 @@ spec:
     to being observed by the keepalived operator and to specify which KeepalivedGroup
     they refer to. The annotation looks like this:\n\n`keepalived-operator.redhat-cop.io/keepalivedgroup:
     <keepalivedgroup namespace>/<keepalivedgroup-name>`\n\nThe image used for the
-    keepalived containers can be specified with `.Spec.Image` it will default to `registry.redhat.io/openshift4/ose-keepalived-ipfailover`
+    keepalived containers can be specified with `.Spec.Image` it will default to `registry.redhat.io/openshift4/ose-keepalived-ipfailover-rhel9`
     if undefined. \n\n## Requirements\n\n### Security Context Constraints\n\nEach
     KeepalivedGroup deploys a [daemonset](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)
     that requires the [privileged scc](https://docs.openshift.com/container-platform/4.5/authentication/managing-security-context-constraints.html),

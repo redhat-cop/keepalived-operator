@@ -30,7 +30,7 @@ kind: KeepalivedGroup
 metadata:
   name: keepalivedgroup-router
 spec:
-  image: registry.redhat.io/openshift4/ose-keepalived-ipfailover
+  image: registry.redhat.io/openshift4/ose-keepalived-ipfailover-rhel9
   interface: ens3
   nodeSelector:
     node-role.kubernetes.io/loadbalancer: ""
@@ -45,7 +45,7 @@ Services must be annotated to opt-in to being observed by the keepalived operato
 
 `keepalived-operator.redhat-cop.io/keepalivedgroup: <keepalivedgroup namespace>/<keepalivedgroup-name>`
 
-The image used for the keepalived containers can be specified with `.Spec.Image` it will default to `registry.redhat.io/openshift4/ose-keepalived-ipfailover` if undefined.
+The image used for the keepalived containers can be specified with `.Spec.Image` it will default to `registry.redhat.io/openshift4/ose-keepalived-ipfailover-rhel9` if undefined.
 
 ## Requirements
 
