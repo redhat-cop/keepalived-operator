@@ -368,7 +368,7 @@ func (r *KeepalivedGroupReconciler) getReferencingServices(instance *redhatcopv1
 // func (r *KeepalivedGroupReconciler) IsInitialized(instance *redhatcopv1alpha1.KeepalivedGroup) bool {
 // 	initialized := true
 // 	if instance.Spec.Image == "" {
-// 		instance.Spec.Image = "registry.redhat.io/openshift4/ose-keepalived-ipfailover"
+// 		instance.Spec.Image = "registry.redhat.io/openshift4/ose-keepalived-ipfailover-rhel9"
 // 		initialized = false
 // 	}
 // 	return initialized

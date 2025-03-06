@@ -35,7 +35,7 @@ type KeepalivedGroupSpec struct {
 
 	// //+kubebuilder:validation:Optional
 	// +kubebuilder:validation:Required
-	// +kubebuilder:default:=registry.redhat.io/openshift4/ose-keepalived-ipfailover
+	// +kubebuilder:default:=registry.redhat.io/openshift4/ose-keepalived-ipfailover-rhel9
 	Image string `json:"image"`
 
 	// +kubebuilder:validation:Required

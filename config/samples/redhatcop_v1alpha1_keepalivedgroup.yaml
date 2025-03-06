@@ -3,7 +3,7 @@ kind: KeepalivedGroup
 metadata:
   name: keepalivedgroup-workers
 spec:
-  image: registry.redhat.io/openshift4/ose-keepalived-ipfailover
+  image: registry.redhat.io/openshift4/ose-keepalived-ipfailover-rhel9
   interface: ens3
   nodeSelector:
     node-role.kubernetes.io/loadbalancer: ""

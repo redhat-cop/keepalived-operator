@@ -49,7 +49,7 @@ spec:
               daemonsetPodPriorityClassName:
                 type: string
               image:
-                default: registry.redhat.io/openshift4/ose-keepalived-ipfailover
+                default: registry.redhat.io/openshift4/ose-keepalived-ipfailover-rhel9
                 description: //+kubebuilder:validation:Optional
                 type: string
               interface:
